@@ -5,7 +5,8 @@ gemini.md
 data
 __pycache__/
 project_plan.md
-.github
+.github/*
+!.github/workflows/
 CLAUDE.md
 eval/runs/
 eval/results/

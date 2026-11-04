@@ -179,9 +179,18 @@ def find_leaks(texts: dict[str, str], needles: dict[str, str]) -> list[dict]:
 
 
 def main() -> None:
-    """Scan, print every leak with its context, and exit with 1 if there is any."""
+    """Scan, print every leak with its context, and exit with 1 if there is any.
+
+    An eval file that does not load (a case ``load_cases`` rejects, or broken
+    YAML) also exits with 1, with one line saying why instead of a traceback.
+    """
     texts = model_facing_texts()
-    needles = leak_needles()
+    try:
+        needles = leak_needles()
+    except (ValueError, yaml.YAMLError) as error:
+        print(f"PROBLEM  {BENCHMARK_PATH.name} or {CALIBRATION_PATH.name} could not be read: "
+              f"{type(error).__name__}: {error}")
+        sys.exit(1)
     leaks = find_leaks(texts, needles)
     print(f"Checked {len(needles)} eval values against {len(texts)} model-facing texts.")
     if not leaks:

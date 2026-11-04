@@ -1,0 +1,31 @@
+name: checks
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Python comes from .python-version; caching is on by default.
+      - uses: astral-sh/setup-uv@v10
+
+      - name: Install dependencies (fails if uv.lock is out of date)
+        run: uv sync --locked
+
+      # The repository has no tests, so this is what catches a broken import
+      # in code nobody ran after a refactor (scrapers, ingestion, the chat).
+      - name: Every module imports
+        run: uv run python -c "import main, run_ingestion, clean_db, eval.run_eval, eval.calibrate_judges"
+        env:
+          PYTHONPATH: src
+
+      - name: Judge prompts fill in
+        run: uv run python -m eval.check_prompt_formatting
+
+      - name: No eval value in a model-facing text
+        run: uv run python -m eval.check_leakage
