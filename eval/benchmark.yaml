@@ -851,16 +851,29 @@ sylabusy:
 
   - id: sylabus-wymagania-wf-plywanie
     question: "Czy na WF trzeba umieć pływać?"
-    entities: {przedmiot: "Wychowanie fizyczne", sekcja: "Wymagania wstępne"}
-    expected_data: {wymagania_wstepne: "W przypadku gier zespołowych i pływania wymagane są podstawowe umiejętności i znajomości danej dyscypliny. Pozostałe dyscypliny wyuczane są od podstaw."}
-    expected_answer: "Do pływania (tak jak do gier zespołowych) wymagane są podstawowe umiejętności; pozostałe dyscypliny są uczone od podstaw."
-    notes: "WF jest wspólny dla wydziału (kody C_CS>…): treść sylabusu porównana 2026-11-04 na Informatyce, Cyberbezpieczeństwie i Sztucznej inteligencji, w obu wariantach (WF30_Z, WF30_L) — identyczna, dlatego pytanie nie podaje kierunku. „Pływać” w pytaniu, „pływania” w sylabusie."
-    source: "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia/1/przedmioty%20obieralne/Wychowanie%20fizyczne%20%28WF30_Z%29.pdf"
+    entities: {przedmiot: "Nauka pływania", sekcja: "Wymagania wstępne"}
+    expected_data: {nauka_plywania_wymagania_wstepne: "Brak przeciwskazań zdrowotnych do wykonywania ćwiczeń fizycznych i pływania."}
+    expected_answer: "Nie trzeba — wśród zajęć sportowych do wyboru jest „Nauka pływania”, która wymaga tylko braku przeciwwskazań zdrowotnych do ćwiczeń fizycznych i pływania."
+    edge_case: "„WF” to grupa przedmiotów obieralnych, nie jeden sylabus — pierwszy pasujący fragment (ogólny sylabus „Wychowanie fizyczne”: w przypadku pływania wymagane są podstawowe umiejętności) prowadzi do mylącego „tak”"
+    notes: >
+      Zajęcia sportowe (kody C_CS>…) są obieralne i wspólne dla wydziału.
+      „Nauka pływania” (NP30) i „Pływanie” (Pły30) są tylko w semestrze 2, na
+      każdym kierunku; w semestrze 1 przedmiotu pływackiego nie ma — odpowiedź
+      nie musi tego mówić, ale nie może twierdzić inaczej. Treść NP30
+      porównana 2026-11-04 na Informatyce i Cyberbezpieczeństwie — identyczna,
+      dlatego pytanie nie podaje kierunku. Dodanie, że „Pływanie” wymaga
+      umiejętności pływania (technika elementarna, utrzymanie się na głębokiej
+      wodzie), nie jest błędem. Ogólny sylabus „Wychowanie fizyczne” (WF30)
+      mówi, że do pływania potrzebne są podstawowe umiejętności — to prawda o
+      tamtym przedmiocie, ale bez „Nauki pływania” odpowiedź „tak” wprowadza w
+      błąd. „Pływać” w pytaniu, „pływania” w sylabusach.
+    source:
+      - "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia/2/przedmioty%20obieralne/Nauka%20p%C5%82ywania%20%28NP30%29.pdf"
+      - "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia/2/przedmioty%20obieralne/P%C5%82ywanie%20%28P%C5%82y30%29.pdf"
     expected_calls:
       - tool: search_syllabi
         expected_sections:
-          - {course_code: "C_CS>WF30_Z", section: "Wymagania wstępne"}
-          - {course_code: "C_CS>WF30_L", section: "Wymagania wstępne"}
+          - {course_code: "C_CS>NP30", section: "Wymagania wstępne"}
 
   - id: sylabus-edge-nieistniejacy-przedmiot
     question: "Jaka jest literatura do Kryptografii kwantowej na Cyberbezpieczeństwie?"
