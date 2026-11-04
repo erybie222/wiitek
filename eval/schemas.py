@@ -92,8 +92,9 @@ class ToolScores(BaseModel):
     got_right_data: bool | None = Field(
         description=(
             "Every expected call has an agent call to the same tool that returned the "
-            "same data. Arguments are not compared, only results. None when the case "
-            "needs no tools, or when the expected calls could not be run."
+            "same data — for a syllabus search, one whose results include one of the "
+            "case's expected_sections. Arguments are not compared, only results. None "
+            "when the case needs no tools, or when the expected calls could not be run."
         )
     )
     called_no_tools: bool | None = Field(
@@ -115,7 +116,8 @@ class ToolScores(BaseModel):
     wrong_data_tools: list[str] = Field(
         description=(
             "Needed tools for which no agent call returned the right data — called with "
-            "wrong arguments, or not called at all. Empty when got_right_data is True."
+            "wrong arguments, a search that returned none of the expected sections, or "
+            "not called at all. Empty when got_right_data is True."
         )
     )
     expected_calls_error: str | None = Field(

@@ -31,7 +31,10 @@ def load_cases(path: Path) -> list[dict]:
             ``expected_calls`` (list[dict] | None) — ``{"tool", "args"}`` per
                 needed call; empty or missing means no tools are needed. A
                 call may add ``only_resolves_prev_id: true``: it is run to
-                give the next ``$prev.id`` its row, but not required.
+                give the next ``$prev.id`` its row, but not required. A
+                syllabus search has ``expected_sections`` (a list of
+                ``{"course_code", "section"}``) instead of ``args``: it is
+                not run, its results must include one of them.
             ``alternative_routes`` (list[dict] | None) — other valid call
                 sequences, each ``{"why", "calls"}``; ``calls`` has the
                 format of ``expected_calls``.
@@ -41,8 +44,9 @@ def load_cases(path: Path) -> list[dict]:
                 instead of answering, e.g. ask back.
 
     Raises:
-        ValueError: An alternative route lacks ``why`` or ``calls``, or
-            ``earlier_questions`` is not a list of non-empty strings.
+        ValueError: An alternative route lacks ``why`` or ``calls``,
+            ``earlier_questions`` is not a list of non-empty strings, or an
+            ``expected_sections`` entry is malformed.
     """
     document = yaml.safe_load(path.read_text(encoding="utf-8"))
     cases = []
@@ -52,8 +56,47 @@ def load_cases(path: Path) -> list[dict]:
         for entry in entries:
             check_alternative_routes(entry)
             check_earlier_questions(entry)
+            check_expected_sections(entry)
             cases.append({**entry, "category": category})
     return cases
+
+
+def check_expected_sections(case: dict) -> None:
+    """Make sure every syllabus search a case expects names the sections properly.
+
+    A misspelt key would otherwise never match a search result, and the
+    agent would be scored as having missed a section the benchmark never
+    really named.
+
+    Args:
+        case: One benchmark case as written in the YAML.
+
+    Raises:
+        ValueError: A call in ``expected_calls`` or an alternative route has
+            ``expected_sections`` that is not a non-empty list of
+            ``{"course_code", "section"}`` with non-empty strings, or has
+            ``args`` as well (a search with sections is never run).
+    """
+    routes = [case.get("expected_calls") or []] + [
+        alternative.get("calls") or [] for alternative in case.get("alternative_routes") or []
+    ]
+    for call in (call for route in routes for call in route):
+        if "expected_sections" not in call:
+            continue
+        sections = call["expected_sections"]
+        well_formed = (
+            isinstance(sections, list) and sections and "args" not in call
+            and all(
+                isinstance(entry, dict) and set(entry) == {"course_code", "section"}
+                and all(isinstance(value, str) and value.strip() for value in entry.values())
+                for entry in sections
+            )
+        )
+        if not well_formed:
+            raise ValueError(
+                f"{case.get('id')}: {call.get('tool')} needs expected_sections as a non-empty list "
+                "of {course_code, section} and no args"
+            )
 
 
 def check_earlier_questions(case: dict) -> None:

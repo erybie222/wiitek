@@ -47,6 +47,15 @@
 #     agent rightly does not make such a call (it already has the id from an
 #     earlier turn), add it anyway with `only_resolves_prev_id: true`: it is
 #     run to find the id, but not required from the agent.
+#   - A syllabus search (search_syllabi) is not run: its ranking depends on
+#     how the query is worded, so any query written here would be a guess.
+#     Instead of `args` it lists `expected_sections` — the syllabus sections
+#     a correct answer can come from, each {course_code, section}. It counts
+#     as the right data when the results of any of the agent's searches
+#     include one of them; one search may cover several such calls. The code
+#     is not something the agent must pass: every search result says which
+#     course it comes from, and the code names one syllabus unambiguously,
+#     where a name may not ("Statystyka" is on two majors).
 #
 # Rules for alternative_routes:
 #   - Only for a second route that is as honest as expected_calls and leads
@@ -601,6 +610,18 @@ pytania_po_angielsku:
       - tool: get_course
         args: {major_name: "Artificial Intelligence", semester: 1}
 
+  - id: en-sylabus-wymagania-statystyka
+    question: "What are the prerequisites for Statistics on Artificial Intelligence?"
+    entities: {kierunek: "Sztuczna inteligencja", przedmiot: "Statystyka", sekcja: "Wymagania wstępne"}
+    expected_data: {wymagania_wstepne: "Podstawowa wiedza w zakresie analizy matematycznej, algebry zbiorów oraz rachunku prawdopodobieństwa"}
+    expected_answer: "Basic knowledge of mathematical analysis, set algebra and probability theory (prerequisites in the syllabus of 'Statystyka', Sztuczna inteligencja). English answer; the course name may stay Polish, as stored."
+    notes: "W bazie przedmiot nazywa się tylko „Statystyka” — angielskiej nazwy przedmiotu nie ma, a sylabusy są tylko po polsku (decyzja fazy 5). Mierzy, czy pytanie po angielsku trafia w polski tekst. Statystyka jest też na Cyberbezpieczeństwie, z innymi wymaganiami wstępnymi."
+    source: "https://put.poznan.pl/cards/2026_2027/Sztuczna%20inteligencja_Artificial%20Intelligence/stacjonarne/studia%20pierwszego%20stopnia/3/Statystyka%20%28STAT%29.pdf"
+    expected_calls:
+      - tool: search_syllabi
+        expected_sections:
+          - {course_code: "S1SI1E>STAT", section: "Wymagania wstępne"}
+
   - id: en-poza-zakresem-erasmus
     question: "I am an Erasmus student — how do I register for the semester and get my learning agreement signed?"
     expected_data: null
@@ -722,6 +743,32 @@ dopytania:
       - tool: get_office_hour
         args: {staff_id: "$prev.id"}
 
+  - id: dopytanie-sylabus-literatura-tego-przedmiotu
+    earlier_questions:
+      - "Kto koordynuje Podstawy genetyki na Bioinformatyce?"
+    question: "a z jakiej książki się uczyć?"
+    entities: {kierunek: "Bioinformatyka", przedmiot: "Podstawy genetyki", sekcja: "Literatura"}
+    expected_data:
+      literatura_podstawowa: ["Węgleński P. (red.): Genetyka molekularna, PWN, Warszawa 2017"]
+    expected_answer: "Literatura podstawowa: P. Węgleński (red.), „Genetyka molekularna”, PWN, Warszawa 2017."
+    notes: "Tura 1: koordynatorka dr hab. inż. Agnieszka Rybarczyk. Literatura uzupełniająca (Winter i in., „Genetyka – krótkie wykłady”, PWN 2012) nie jest wymagana, ale jej podanie nie jest błędem."
+    source: "https://put.poznan.pl/cards/2026_2027/Bioinformatyka/stacjonarne/studia%20pierwszego%20stopnia/1/Podstawy%20genetyki%20%28GEN%29.pdf"
+    expected_calls:
+      - tool: search_syllabi
+        expected_sections:
+          - {course_code: "S1Bioinf1>GEN", section: "Koordynatorzy i wykładowcy"}
+      - tool: search_syllabi
+        expected_sections:
+          - {course_code: "S1Bioinf1>GEN", section: "Literatura"}
+    alternative_routes:
+      - why: "Wyszukiwanie z tury 1 bez filtra sekcji mogło już zwrócić literaturę tego
+          przedmiotu; tura 2 może wtedy odpowiedzieć z niego bez nowego wywołania — tak
+          jak dopytanie-konsultacje-tej-osoby bierze staff_id z tury 1."
+        calls:
+          - tool: search_syllabi
+            expected_sections:
+              - {course_code: "S1Bioinf1>GEN", section: "Literatura"}
+
   - id: dopytanie-edge-brak-kontekstu
     question: "a w 2024?"
     expected_data: null
@@ -735,3 +782,122 @@ dopytania:
     edge_case: "dopytanie bez wcześniejszej rozmowy — nie ma skąd wziąć tematu ani kierunku"
     # expected_calls note: Nothing to look up until the user says what they mean.
     expected_calls: []
+
+# ---------------------------------------------------------------------------
+# Category 11 — sylabusy (course syllabi)
+#
+# What a course is about, how it is passed, its literature and who runs it —
+# answered from the course syllabus PDFs (search_syllabi), not from the ECTS
+# catalog: ECTS, hours and whether there is an exam still come from
+# get_course. Each case's `source` is the syllabus PDF its values were checked
+# in. Sections are named as the PDF's headings, except the first page's two
+# columns, stored together as "Koordynatorzy i wykładowcy". A question that
+# names no course has to be checked against every syllabus of the major, not
+# a sample: its reference must not miss another course that answers it as
+# well.
+# ---------------------------------------------------------------------------
+sylabusy:
+  - id: sylabus-literatura-statystyka-cyberbezpieczenstwo
+    question: "Jaka jest literatura podstawowa do Statystyki na Cyberbezpieczeństwie?"
+    entities: {kierunek: "Cyberbezpieczeństwo", przedmiot: "Statystyka", sekcja: "Literatura"}
+    expected_data:
+      literatura_podstawowa:
+        - "Krysicki W., Bartos J., Dyczka W., Królikowska K., Wasilewski M.: Rachunek prawdopodobieństwa i statystyka matematyczna w zadaniach, wyd. 8, PWN, Warszawa 2012"
+        - "Bobrowski D., Maćkowiak-Łybacka K.: Wybrane metody wnioskowania statystycznego, Wyd. PP, Poznań 2004"
+    expected_answer: "Literatura podstawowa: 1) W. Krysicki i in., „Rachunek prawdopodobieństwa i statystyka matematyczna w zadaniach”, wyd. 8, PWN 2012; 2) D. Bobrowski, K. Maćkowiak-Łybacka, „Wybrane metody wnioskowania statystycznego”, Wyd. PP 2004."
+    notes: "Literatura uzupełniająca (Devore; Ross) nie jest wymagana, ale jej podanie nie jest błędem. Sylabus Statystyki na Sztucznej inteligencji ma tę samą literaturę, więc pomylenie kierunków nie zmieni tu odpowiedzi — kierunki rozróżnia sylabus-edge-ta-sama-nazwa-dwa-kierunki."
+    source: "https://put.poznan.pl/cards/2026_2027/Cyberbezpiecze%C5%84stwo/stacjonarne/studia%20pierwszego%20stopnia/3/Statystyka%20%28STAT%29.pdf"
+    expected_calls:
+      - tool: search_syllabi
+        expected_sections:
+          - {course_code: "S1Cybez1>STAT", section: "Literatura"}
+
+  - id: sylabus-skala-ocen-optoelektronika
+    question: "Ile procent trzeba zdobyć z Optoelektroniki na ocenę 4,0?"
+    entities: {kierunek: "Mikroelektronika i komunikacja cyfrowa", przedmiot: "Optoelektronika", sekcja: "Metody weryfikacji efektów uczenia się i kryteria oceny"}
+    expected_data: {ocena: "4,0", procent_punktow: "70%–79%"}
+    expected_answer: "Co najmniej 70% — w skali ocen z sylabusu przedział 70%–79% daje 4,0."
+    notes: "Pełna skala z sylabusu: <50% – 2,0; 50–59% – 3,0; 60–69% – 3,5; 70–79% – 4,0; 80–89% – 4,5; 90–100% – 5,0. Optoelektronika jest tylko na Mikroelektronice i komunikacji cyfrowej, więc pytanie nie podaje kierunku. Błąd: „około 70%” albo przedział sąsiedniej oceny."
+    source: "https://put.poznan.pl/cards/2026_2027/Mikroelektronika%20i%20komunikacja%20cyfrowa/stacjonarne/studia%20pierwszego%20stopnia/5/Optoelektronika%20%28OPTO%29.pdf"
+    expected_calls:
+      - tool: search_syllabi
+        expected_sections:
+          - {course_code: "S1MiKC2>OPTO", section: "Metody weryfikacji efektów uczenia się i kryteria oceny"}
+
+  - id: sylabus-edge-brak-progu-socjologia
+    question: "Ile procent punktów trzeba zdobyć, żeby zaliczyć Elementy socjologii i etyki?"
+    entities: {kierunek: "Teleinformatyka", przedmiot: "Elementy socjologii i etyki", sekcja: "Metody weryfikacji efektów uczenia się i kryteria oceny"}
+    expected_data: {prog_procentowy: null, sposob_weryfikacji: "Rozmowy podczas zajęć, praca pisemna na zatwierdzony wcześniej temat."}
+    expected_answer: "Sylabus nie podaje progu procentowego — efekty weryfikowane są przez rozmowy podczas zajęć i pracę pisemną na zatwierdzony wcześniej temat. Żadnej liczby procent podawać nie wolno."
+    edge_case: "pytanie o liczbę, której źródło nie podaje — kusi 50%, obecne w wielu innych sylabusach"
+    notes: "Przedmiot obieralny, tylko na Teleinformatyce (semestr 1)."
+    source: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia%20pierwszego%20stopnia/1/przedmioty%20obieralne/Elementy%20socjologii%20i%20etyki%20%28ESiE%29.pdf"
+    expected_calls:
+      - tool: search_syllabi
+        expected_sections:
+          - {course_code: "S1Teleinf1>ESiE", section: "Metody weryfikacji efektów uczenia się i kryteria oceny"}
+
+  - id: sylabus-koordynator-i-prowadzacy-socjologia
+    question: "Kto koordynuje Elementy socjologii i etyki, a kto prowadzi zajęcia?"
+    entities: {kierunek: "Teleinformatyka", przedmiot: "Elementy socjologii i etyki", sekcja: "Koordynatorzy i wykładowcy"}
+    expected_data: {koordynator: "dr Radosław Kot", prowadzacy: "dr Michał Weres"}
+    expected_answer: "Koordynator: dr Radosław Kot; zajęcia prowadzi (wykładowca): dr Michał Weres."
+    edge_case: "koordynator i prowadzący to dwie różne osoby z dwóch kolumn pierwszej strony sylabusu — zamiana ról = błąd"
+    source: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia%20pierwszego%20stopnia/1/przedmioty%20obieralne/Elementy%20socjologii%20i%20etyki%20%28ESiE%29.pdf"
+    expected_calls:
+      - tool: search_syllabi
+        expected_sections:
+          - {course_code: "S1Teleinf1>ESiE", section: "Koordynatorzy i wykładowcy"}
+
+  - id: sylabus-wymagania-wf-plywanie
+    question: "Czy na WF trzeba umieć pływać?"
+    entities: {przedmiot: "Wychowanie fizyczne", sekcja: "Wymagania wstępne"}
+    expected_data: {wymagania_wstepne: "W przypadku gier zespołowych i pływania wymagane są podstawowe umiejętności i znajomości danej dyscypliny. Pozostałe dyscypliny wyuczane są od podstaw."}
+    expected_answer: "Do pływania (tak jak do gier zespołowych) wymagane są podstawowe umiejętności; pozostałe dyscypliny są uczone od podstaw."
+    notes: "WF jest wspólny dla wydziału (kody C_CS>…): treść sylabusu porównana 2026-11-04 na Informatyce, Cyberbezpieczeństwie i Sztucznej inteligencji, w obu wariantach (WF30_Z, WF30_L) — identyczna, dlatego pytanie nie podaje kierunku. „Pływać” w pytaniu, „pływania” w sylabusie."
+    source: "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia/1/przedmioty%20obieralne/Wychowanie%20fizyczne%20%28WF30_Z%29.pdf"
+    expected_calls:
+      - tool: search_syllabi
+        expected_sections:
+          - {course_code: "C_CS>WF30_Z", section: "Wymagania wstępne"}
+          - {course_code: "C_CS>WF30_L", section: "Wymagania wstępne"}
+
+  - id: sylabus-edge-nieistniejacy-przedmiot
+    question: "Jaka jest literatura do Kryptografii kwantowej na Cyberbezpieczeństwie?"
+    entities: {kierunek: "Cyberbezpieczeństwo", przedmiot: "Kryptografia kwantowa", sekcja: "Literatura"}
+    expected_data: null
+    expected_answer: "Nie wiem — przedmiotu „Kryptografia kwantowa” nie ma w planie studiów Cyberbezpieczeństwa. Nie wolno podać literatury innego przedmiotu jako odpowiedzi."
+    edge_case: "nieistniejący przedmiot o nazwie bliskiej istniejącemu („Wprowadzenie do obliczeń kwantowych”) — bot nie może podstawić innego przedmiotu"
+    source: *przedmioty_cyber
+    # expected_calls note: get_course, not a syllabus search, shows that the course does not
+    #   exist: an empty search only says that no syllabus text matched, and a course can exist
+    #   without a stored syllabus ("doesn't exist" is not "exists but has no data").
+    expected_calls:
+      - tool: get_course
+        args: {major_name: "Cyberbezpieczeństwo", course_name: "Kryptografia kwantowa"}
+
+  - id: sylabus-edge-ta-sama-nazwa-dwa-kierunki
+    question: "Kto koordynuje Statystykę?"
+    entities: {przedmiot: "Statystyka", kierunki: ["Cyberbezpieczeństwo", "Sztuczna inteligencja"], sekcja: "Koordynatorzy i wykładowcy"}
+    expected_data:
+      "Cyberbezpieczeństwo": {koordynator: "dr Mateusz John"}
+      "Sztuczna inteligencja": {koordynator: "prof. dr hab. inż. Katarzyna Filipiak"}
+    expected_answer: null
+    expected_behavior: >
+      Statystyka jest na dwóch kierunkach, z różnymi koordynatorami. Poprawnie:
+      podać obu z kierunkami (Cyberbezpieczeństwo — dr Mateusz John; Sztuczna
+      inteligencja — prof. dr hab. inż. Katarzyna Filipiak) albo dopytać, o
+      który kierunek chodzi. Błąd: podać jedną osobę bez zaznaczenia, że na
+      drugim kierunku koordynuje ktoś inny.
+    edge_case: "ta sama nazwa przedmiotu na dwóch kierunkach, pytanie bez kierunku — nie wolno po cichu wybrać jednego"
+    source:
+      - "https://put.poznan.pl/cards/2026_2027/Cyberbezpiecze%C5%84stwo/stacjonarne/studia%20pierwszego%20stopnia/3/Statystyka%20%28STAT%29.pdf"
+      - "https://put.poznan.pl/cards/2026_2027/Sztuczna%20inteligencja_Artificial%20Intelligence/stacjonarne/studia%20pierwszego%20stopnia/3/Statystyka%20%28STAT%29.pdf"
+    # expected_calls note: Both right reactions need the search — only its result shows that the
+    #   course is on two majors. One section is enough for layer 1; whether the answer names both
+    #   people or asks which major is meant, the correctness judge scores.
+    expected_calls:
+      - tool: search_syllabi
+        expected_sections:
+          - {course_code: "S1Cybez1>STAT", section: "Koordynatorzy i wykładowcy"}
+          - {course_code: "S1SI1E>STAT", section: "Koordynatorzy i wykładowcy"}

@@ -107,8 +107,9 @@ def leak_needles() -> dict[str, str]:
     """Collect what must not appear in a model-facing text, each with where it came from.
 
     From the benchmark: every question (earlier turns included), the
-    ``entities``, ``expected_data`` and the arguments of every expected or
-    alternative call, plus numbers and room codes from the reference answers.
+    ``entities``, ``expected_data`` and the arguments (or, for a syllabus
+    search, the ``expected_sections``) of every expected or alternative
+    call, plus numbers and room codes from the reference answers.
     From the calibration set: every question and answer.
 
     Returns:
@@ -136,7 +137,7 @@ def leak_needles() -> dict[str, str]:
             route.get("calls") or [] for route in case.get("alternative_routes") or []
         ]
         for call in (call for route in routes for call in route):
-            for value in _strings_in(call.get("args")):
+            for value in _strings_in([call.get("args"), call.get("expected_sections")]):
                 add(value, origin)
         for field in ("expected_answer", "expected_behavior"):
             for specific in SPECIFICS_IN_TEXT.findall(str(case.get(field) or "")):

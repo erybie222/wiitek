@@ -7,7 +7,10 @@ actually did:
 - did it call every tool the case needs? (``called_right_tools``)
 - did those calls return the right data? (``got_right_data``) — checked by
   running the expected calls on the database and comparing results, so the
-  exact wording of the agent's arguments does not matter.
+  exact wording of the agent's arguments does not matter. A syllabus search
+  is the exception: it is not run, because its ranking depends on how the
+  query is worded; it lists the sections a correct answer can come from
+  (``expected_sections``), and the agent's search results must include one.
 
 A case may also list ``alternative_routes``: other call sequences that are
 equally valid. ``score_tool_calls_with_alternatives`` scores the agent against
@@ -66,7 +69,9 @@ def run_expected_calls(calls: list[dict]) -> list[ToolCall]:
     returned a list.
 
     Args:
-        calls: A case's ``expected_calls``, each ``{"tool", "args"}``.
+        calls: Expected calls to run, each ``{"tool", "args"}`` — never a
+            search call with ``expected_sections``, which has no arguments
+            to run (see ``returned_expected_section``).
 
     Returns:
         list[ToolCall]: One per expected call, in order. ``args`` are the
@@ -121,6 +126,41 @@ def agent_tool_calls(messages: list[BaseMessage]) -> list[ToolCall]:
     ]
 
 
+def returned_expected_section(expected_sections: list[dict], agent_calls: list[ToolCall], tool: str) -> bool:
+    """Say whether any of the agent's searches returned one of the sections a case accepts.
+
+    A search is scored this way instead of being run like other expected
+    calls: its ranking depends on how the query is worded, so the benchmark
+    names the sections a correct answer can come from, not a query.
+
+    Args:
+        expected_sections: The accepted sections, each ``{"course_code", "section"}``,
+            e.g. ``{"course_code": "S1Inf1>ALIN", "section": "Literatura"}``.
+        agent_calls: The agent's calls with results, from ``agent_tool_calls``.
+        tool: Name of the search tool; only the agent's calls to it are read.
+
+    Returns:
+        bool: True when some search result row has the section of an
+        accepted entry and lists that entry's course code among its
+        ``courses`` (one row per syllabus fragment; a fragment shared by
+        several courses, like the faculty-wide PE syllabus, lists them all).
+        False when no search was made, or none returned such a row.
+    """
+    rows = [
+        row
+        for call in agent_calls
+        if call.name == tool and isinstance(call.result, list)
+        for row in call.result
+        if isinstance(row, dict)
+    ]
+    return any(
+        row.get("section") == wanted["section"]
+        and any(course.get("course_code") == wanted["course_code"] for course in row.get("courses") or [])
+        for wanted in expected_sections
+        for row in rows
+    )
+
+
 def score_tool_calls(expected: list[dict], agent_calls: list[ToolCall]) -> ToolScores:
     """Score the agent's tool calls on one case against one route (no LLM).
 
@@ -136,7 +176,10 @@ def score_tool_calls(expected: list[dict], agent_calls: list[ToolCall]) -> ToolS
       result must equal the result of some agent call to the same tool.
       Arguments are never compared, so "Informatyka" vs "informatyka" costs
       nothing as long as the data is the same. Caveat: if the right result is
-      empty, a wrong call that also finds nothing passes too.
+      empty, a wrong call that also finds nothing passes too. An expected
+      search (a call with ``expected_sections`` instead of ``args``) is not
+      run: some agent search must have returned one of its sections
+      (``returned_expected_section``).
 
     An expected call marked ``only_resolves_prev_id: true`` is run but never
     required from the agent: it exists only so the next call's ``$prev.id``
@@ -147,7 +190,9 @@ def score_tool_calls(expected: list[dict], agent_calls: list[ToolCall]) -> ToolS
     gets one ``extra_calls``.
 
     Args:
-        expected: The route's calls, each ``{"tool", "args"}``; empty means no tools are needed.
+        expected: The route's calls, each ``{"tool", "args"}`` — or, for a
+            search, ``{"tool", "expected_sections"}``; empty means no tools
+            are needed.
         agent_calls: The agent's calls with results, from ``agent_tool_calls``.
 
     Returns:
@@ -187,8 +232,12 @@ def score_tool_calls(expected: list[dict], agent_calls: list[ToolCall]) -> ToolS
             missing_tools.append(name)
 
     # Right data, step 1: run the expected calls now to get the correct rows.
+    # Searches are not run; their sections are checked in step 3.
+    run_calls = [call for call in expected if "expected_sections" not in call]
+    search_calls = [call for call in expected if "expected_sections" in call]
+    run_calls_required = [not call.get("only_resolves_prev_id") for call in run_calls]
     try:
-        correct_results = run_expected_calls(expected)
+        correct_results = run_expected_calls(run_calls)
     except Exception as error:
         return ToolScores(
             called_right_tools=not missing_tools,
@@ -206,7 +255,7 @@ def score_tool_calls(expected: list[dict], agent_calls: list[ToolCall]) -> ToolS
     # cover two expected calls.
     wrong_data_tools = []
     unused_agent_calls = list(agent_calls)
-    for correct, needed in zip(correct_results, required):
+    for correct, needed in zip(correct_results, run_calls_required):
         if not needed:
             continue
         agent_call = next(
@@ -218,6 +267,13 @@ def score_tool_calls(expected: list[dict], agent_calls: list[ToolCall]) -> ToolS
             wrong_data_tools.append(correct.name)
         else:
             unused_agent_calls.remove(agent_call)
+
+    # Right data, step 3: each expected search needs an agent search that
+    # returned one of its sections. Searches are not used up: one search may
+    # return the sections of two expected calls.
+    for call in search_calls:
+        if not returned_expected_section(call["expected_sections"], agent_calls, call["tool"]):
+            wrong_data_tools.append(call["tool"])
 
     return ToolScores(
         called_right_tools=not missing_tools,
