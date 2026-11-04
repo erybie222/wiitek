@@ -1,5 +1,7 @@
 # WIiTek
 
+[![checks](https://github.com/erybie222/wiitek/actions/workflows/checks.yml/badge.svg)](https://github.com/erybie222/wiitek/actions/workflows/checks.yml)
+
 A chatbot that answers questions about studying at the Faculty of Computing and
 Telecommunications (WIiT) of Poznań University of Technology: admission thresholds,
 study plans (courses and ECTS points) and staff office hours.
@@ -122,12 +124,19 @@ punished. The command reports how many broken answers the judges caught and whet
 answer was scored 0. No database is needed.
 
 ```bash
-uv run python -m eval.check_leakage   # after editing a prompt or a tool docstring
+uv run python -m eval.check_leakage            # no benchmark value in any prompt
+uv run python -m eval.check_prompt_formatting  # the judges' prompts fill in correctly
 ```
 
-This checks that no prompt, tool description or judge schema contains a value or question from
-the benchmark or the calibration set — a prompt holding the answers would turn the evaluation
-into a memory test. It exits with an error and lists every match.
+`check_leakage` checks that no prompt, tool description or judge schema contains a value or
+question from the benchmark or the calibration set — a prompt holding the answers would turn the
+evaluation into a memory test. It exits with an error and lists every match.
+`check_prompt_formatting` builds the judges' prompts without calling a model, to catch a template
+that breaks, or one that silently leaves out an input such as the answer being judged.
+
+Neither needs a database or an API key, so both run in CI on every push
+(`.github/workflows/checks.yml`, status badge at the top), together with a check that `uv.lock`
+is up to date and that every module imports.
 
 ## Managing the database
 
@@ -175,4 +184,6 @@ eval/
 docker/
   docker-compose.yml     database + pgAdmin
   init.sql               table definitions
+.github/workflows/
+  checks.yml             CI: the checks that need no database or API key
 ```
