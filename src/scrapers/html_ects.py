@@ -20,7 +20,7 @@ import requests
 from bs4 import BeautifulSoup
 from psycopg import Cursor as DBCursor
 
-from database.queries.courses import delete_courses_of_major, upsert_course
+from database.queries.courses import delete_courses_not_seen_in_run, upsert_course
 
 
 def parse_hours(hours_str: str) -> tuple[int, bool]:
@@ -50,9 +50,11 @@ def parse_hours(hours_str: str) -> tuple[int, bool]:
 def ingest_ects_catalog(cursor: DBCursor, url: str, major_id: int) -> None:
     """Make the database hold exactly the courses on one major's catalog page.
 
-    The major's stored courses are deleted and the ones on the page stored, so courses dropped from the catalog
-    disappear here too. If the page cannot be downloaded, or yields no courses (more likely a layout change than an
-    empty catalog), the stored courses are kept, a warning is printed and the rest of the ingestion continues.
+    The courses on the page are stored (inserted, or updated in place), then the major's courses this run did not write
+    are deleted, so courses dropped from the catalog disappear here too. A course still in the catalog is never deleted
+    and re-inserted, so rows that reference it stay. If the page cannot be downloaded, or yields no courses (more likely
+    a layout change than an empty catalog), the stored courses are kept, a warning is printed and the rest of the
+    ingestion continues.
 
     Args:
         cursor: Database cursor to run the SQL on.
@@ -183,8 +185,10 @@ def ingest_ects_catalog(cursor: DBCursor, url: str, major_id: int) -> None:
         print("\nWARNING: no courses found on the page (layout change?), keeping stored courses.")
         return
 
-    delete_courses_of_major(cursor, major_id)
     for course in courses:
         upsert_course(cursor=cursor, major_id=major_id, **course)
+    # Only after every course on the page is stored: what this run did not
+    # write has left the catalog.
+    removed = delete_courses_not_seen_in_run(cursor, major_id)
 
-    print(f"\nCatalog processing complete: {len(courses)} course rows parsed.")
+    print(f"\nCatalog processing complete: {len(courses)} course rows parsed, {removed} no longer listed removed.")

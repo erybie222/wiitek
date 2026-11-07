@@ -7,23 +7,30 @@ from psycopg import Cursor as DBCursor
 from database.serialization import row_to_dict
 
 
-def delete_courses_of_major(cursor: DBCursor, major_id: int) -> None:
-    """Delete all courses of one major.
+def delete_courses_not_seen_in_run(cursor: DBCursor, major_id: int) -> int:
+    """Delete the courses of one major that the current ingestion run has not written.
 
-    Ingestion calls this before storing the major's current catalog, so courses dropped from the catalog also disappear
-    here.
+    Ingestion calls this right after storing the major's catalog, so a course dropped from the catalog disappears here
+    too, while a course still in it keeps its row (and whatever references that row). A row written in this run has
+    ``last_updated`` equal to ``CURRENT_TIMESTAMP``, which Postgres fixes at the start of the transaction, so this only
+    works while the whole run is one transaction.
 
     Args:
-        cursor: Database cursor to run the SQL on.
-        major_id: Id of the major.
+        cursor: Database cursor of the ingestion run.
+        major_id: Id of the major whose catalog was just stored.
+
+    Returns:
+        int: Number of courses deleted, e.g. 2 when two courses left the catalog since the last run.
     """
     cursor.execute(
         """
         DELETE FROM courses
-        WHERE major_id = %s;
+        WHERE major_id = %s
+          AND last_updated IS DISTINCT FROM CURRENT_TIMESTAMP;
     """,
         (major_id,),
     )
+    return cursor.rowcount
 
 
 def upsert_course(

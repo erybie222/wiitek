@@ -13,10 +13,10 @@ instead of undoing the rest: step 3 when the PDF is missing or not laid out as
 expected, and step 4, which needs a browser cookie that often expires (staff
 saved before the failure are kept).
 
-Do not commit partway through: step 4 deletes staff and units that this run
-did not write, and recognises them by a ``last_updated`` older than the
-transaction's start. A commit in between would make everything written
-before it look stale.
+Do not commit partway through: step 2 deletes courses and step 4 staff and
+units that this run did not write, and both recognise them by a
+``last_updated`` older than the transaction's start. A commit in between would
+make everything written before it look stale.
 """
 
 from datetime import date
