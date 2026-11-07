@@ -1,5 +1,7 @@
 """SQL for the ``admission_thresholds`` table: minimum points and places per major and year."""
 
+from __future__ import annotations
+
 from psycopg import Cursor as DBCursor
 
 from database.serialization import row_to_dict
@@ -24,7 +26,8 @@ def upsert_threshold(
         source_url: Where the numbers come from, as ``"PDF: <path>"``.
     """
     # round is always 1: the thresholds PDF only lists the first recruitment round.
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO admission_thresholds
         (major_id, year, round, min_points, capacity, source_url)
         VALUES (%s, %s, 1, %s, %s, %s)
@@ -33,7 +36,9 @@ def upsert_threshold(
             min_points = EXCLUDED.min_points,
             capacity = EXCLUDED.capacity,
             last_updated = CURRENT_TIMESTAMP;
-    """, (major_id, year, points, capacity, source_url))
+    """,
+        (major_id, year, points, capacity, source_url),
+    )
 
 
 def get_admission_threshold(
@@ -48,8 +53,8 @@ def get_admission_threshold(
 
     Args:
         cursor: Database cursor to run the SQL on.
-        major_name: Polish name, or the English name of an English-taught
-            major; letter case and Polish diacritics are ignored.
+        major_name: Polish name, or the English name of an English-taught major; letter case and Polish diacritics are
+            ignored.
         year: Recruitment year.
         round: Only this recruitment round (1 or 2); None for all.
         degree: Only this degree; None for all.
@@ -70,7 +75,8 @@ def get_admission_threshold(
     """
     # Optional filters: each value is passed twice — once for the IS NULL
     # check (None = no filter), once for the comparison.
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT m.polish_name, m.degree, m.study_mode, m.english_name, t.year, t.round,
                t.min_points, t.capacity, t.source_url, t.last_updated
         FROM admission_thresholds t
@@ -82,10 +88,22 @@ def get_admission_threshold(
           AND (%s::text IS NULL OR m.degree = %s::text)
           AND (%s::text IS NULL OR m.study_mode = %s::text)
         ORDER BY m.english_name NULLS FIRST, t.round;
-    """, (major_name, major_name, year, round, round, degree, degree, study_mode, study_mode))
+    """,
+        (major_name, major_name, year, round, round, degree, degree, study_mode, study_mode),
+    )
 
-    columns = ("major_name", "degree", "study_mode", "major_english_name", "year", "round",
-               "min_points", "capacity", "source_url", "last_updated")
+    columns = (
+        "major_name",
+        "degree",
+        "study_mode",
+        "major_english_name",
+        "year",
+        "round",
+        "min_points",
+        "capacity",
+        "source_url",
+        "last_updated",
+    )
     return [row_to_dict(columns, row) for row in cursor.fetchall()]
 
 

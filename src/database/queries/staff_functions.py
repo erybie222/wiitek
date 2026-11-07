@@ -5,6 +5,8 @@ separate from a person's job title (``staff.position``) and from the unit
 they work in (``staff.department``).
 """
 
+from __future__ import annotations
+
 from psycopg import Cursor as DBCursor
 
 from database.serialization import row_to_dict
@@ -13,17 +15,20 @@ from database.serialization import row_to_dict
 def delete_staff_functions_of_staff(cursor: DBCursor, staff_id: int) -> None:
     """Delete all functions of one person.
 
-    Ingestion calls this before inserting the person's current functions, so
-    the database always holds exactly what Informator shows now.
+    Ingestion calls this before inserting the person's current functions, so the database always holds exactly what
+    Informator shows now.
 
     Args:
         cursor: Database cursor to run the SQL on.
         staff_id: Id of the person.
     """
-    cursor.execute("""
+    cursor.execute(
+        """
         DELETE FROM staff_functions
         WHERE staff_id = %s;
-    """, (staff_id,))
+    """,
+        (staff_id,),
+    )
 
 
 def insert_staff_function(
@@ -39,18 +44,21 @@ def insert_staff_function(
         cursor: Database cursor to run the SQL on.
         staff_id: Id of the person.
         function_name: Name of the role, e.g. "Dyrektor instytutu".
-        department_name: Unit the role is in, as plain text, or None. Not
-            linked to ``departments`` because it may be outside WIiT.
+        department_name: Unit the role is in, as plain text, or None. Not linked to ``departments`` because it may be
+            outside WIiT.
         source_url: Link to the person's Informator card.
     """
     # DO NOTHING skips a function listed twice on the same card, also one
     # with no department_name (the constraint is NULLS NOT DISTINCT).
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO staff_functions
         (staff_id, function_name, department_name, source_url)
         VALUES (%s, %s, %s, %s)
         ON CONFLICT (staff_id, function_name, department_name) DO NOTHING;
-    """, (staff_id, function_name, department_name, source_url))
+    """,
+        (staff_id, function_name, department_name, source_url),
+    )
 
 
 def get_staff_function(
@@ -65,8 +73,7 @@ def get_staff_function(
         cursor: Database cursor to run the SQL on.
         staff_id: Only this person's functions; None for everyone.
         function_name: Only this exact function (case and diacritics ignored); None for all.
-        department_name: Only functions in this exact unit (case and diacritics ignored);
-            None for all.
+        department_name: Only functions in this exact unit (case and diacritics ignored); None for all.
 
     Returns:
         list[dict]: Matching functions ordered by the holder's name; empty if
@@ -81,7 +88,8 @@ def get_staff_function(
     """
     # Optional filters: each value is passed twice — once for the IS NULL
     # check (None = no filter), once for the comparison.
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT sf.function_name, sf.department_name, sf.source_url, sf.last_updated,
                s.id, s.first_name, s.last_name, s.academic_title, s.position, s.email
         FROM staff_functions sf
@@ -90,14 +98,29 @@ def get_staff_function(
           AND (%s::text IS NULL OR LOWER(unaccent(sf.function_name)) = LOWER(unaccent(%s::text)))
           AND (%s::text IS NULL OR LOWER(unaccent(sf.department_name)) = LOWER(unaccent(%s::text)))
         ORDER BY s.last_name, s.first_name;
-    """, (
-        staff_id, staff_id,
-        function_name, function_name,
-        department_name, department_name,
-    ))
+    """,
+        (
+            staff_id,
+            staff_id,
+            function_name,
+            function_name,
+            department_name,
+            department_name,
+        ),
+    )
 
-    columns = ("function_name", "department_name", "source_url", "last_updated",
-               "staff_id", "first_name", "last_name", "academic_title", "position", "email")
+    columns = (
+        "function_name",
+        "department_name",
+        "source_url",
+        "last_updated",
+        "staff_id",
+        "first_name",
+        "last_name",
+        "academic_title",
+        "position",
+        "email",
+    )
     return [row_to_dict(columns, row) for row in cursor.fetchall()]
 
 

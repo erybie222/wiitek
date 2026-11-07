@@ -20,6 +20,8 @@ Usage:
     uv run python -m eval.check_leakage      # exit code 1 when anything leaks
 """
 
+from __future__ import annotations
+
 import json
 import re
 import sys
@@ -28,12 +30,13 @@ from typing import Iterator
 
 import yaml
 
-# Must come before the app imports below: it puts src/ on the import path.
 from ._src_path import ROOT
 
+# isort: split
 from database.repository import TOOLS
 from templates import CORRECTNESS_PROMPT, FAITHFULNESS_PROMPT, SYSTEM_PROMPT
 
+# Must come before the app imports below: it puts src/ on the import path.
 from .benchmark_loader import load_cases
 from .schemas import Claim, Correctness, FactCheck, Faithfulness
 
@@ -43,13 +46,19 @@ CALIBRATION_PATH = ROOT / "eval" / "judge_calibration.yaml"
 # Values that also occur in the eval sets but are vocabulary, not answers: the
 # exact spelling the agent must pass as a tool argument, or a generic title.
 ALLOWED_VOCABULARY = {
-    "dyrektor instytutu",   # a function_name example in SYSTEM_PROMPT and get_staff_function
-    "profesor",             # a `position` value
-    "prof. dr hab. inz",    # an `academic_title` value
-    "poniedzialek",         # weekday names are the day_of_week vocabulary
-    "wtorek", "sroda", "czwartek", "piatek",
-    "egzamin", "zaliczenie z ocena",  # assessment_type values
-    "full-time", "part-time", "bachelor-of-engineering",  # fixed codes
+    "dyrektor instytutu",  # a function_name example in SYSTEM_PROMPT and get_staff_function
+    "profesor",  # a `position` value
+    "prof. dr hab. inz",  # an `academic_title` value
+    "poniedzialek",  # weekday names are the day_of_week vocabulary
+    "wtorek",
+    "sroda",
+    "czwartek",
+    "piatek",
+    "egzamin",
+    "zaliczenie z ocena",  # assessment_type values
+    "full-time",
+    "part-time",
+    "bachelor-of-engineering",  # fixed codes
     "wiit",
 }
 
@@ -60,7 +69,7 @@ BARE_YEAR = re.compile(r"(19|20)\d\d")
 
 
 def normalize(text: str) -> str:
-    """Lower-case, strip Polish diacritics and collapse whitespace, so wording differences don't hide a match.
+    r"""Lower-case, strip Polish diacritics and collapse whitespace, so wording differences don't hide a match.
 
     Args:
         text: Any text.
@@ -106,11 +115,9 @@ def _strings_in(value) -> Iterator[str]:
 def leak_needles() -> dict[str, str]:
     """Collect what must not appear in a model-facing text, each with where it came from.
 
-    From the benchmark: every question (earlier turns included), the
-    ``entities``, ``expected_data`` and the arguments (or, for a syllabus
-    search, the ``expected_sections``) of every expected or alternative
-    call, plus numbers and room codes from the reference answers.
-    From the calibration set: every question and answer.
+    From the benchmark: every question (earlier turns included), the ``entities``, ``expected_data`` and the arguments
+    (or, for a syllabus search, the ``expected_sections``) of every expected or alternative call, plus numbers and room
+    codes from the reference answers. From the calibration set: every question and answer.
 
     Returns:
         dict[str, str]: Normalized needle → origin, e.g.
@@ -163,9 +170,8 @@ def find_leaks(texts: dict[str, str], needles: dict[str, str]) -> list[dict]:
         needles: Normalized needle → origin, from ``leak_needles``.
 
     Returns:
-        list[dict]: One per occurrence: ``text`` (label), ``needle``,
-        ``origin`` and ``context`` (the surrounding normalized text). Empty
-        when nothing leaks.
+        list[dict]: One per occurrence: ``text`` (label), ``needle``, ``origin`` and ``context`` (the surrounding
+            normalized text). Empty when nothing leaks.
     """
     leaks = []
     for label, text in texts.items():
@@ -173,7 +179,7 @@ def find_leaks(texts: dict[str, str], needles: dict[str, str]) -> list[dict]:
         for needle, origin in needles.items():
             pattern = r"(?<![\w.])" + re.escape(needle) + r"(?!\w)"
             for match in re.finditer(pattern, haystack):
-                context = haystack[max(0, match.start() - 60): match.end() + 60]
+                context = haystack[max(0, match.start() - 60) : match.end() + 60]
                 leaks.append({"text": label, "needle": needle, "origin": origin, "context": context})
     return leaks
 
@@ -188,8 +194,10 @@ def main() -> None:
     try:
         needles = leak_needles()
     except (ValueError, yaml.YAMLError) as error:
-        print(f"PROBLEM  {BENCHMARK_PATH.name} or {CALIBRATION_PATH.name} could not be read: "
-              f"{type(error).__name__}: {error}")
+        print(
+            f"PROBLEM  {BENCHMARK_PATH.name} or {CALIBRATION_PATH.name} could not be read: "
+            f"{type(error).__name__}: {error}"
+        )
         sys.exit(1)
     leaks = find_leaks(texts, needles)
     print(f"Checked {len(needles)} eval values against {len(texts)} model-facing texts.")
@@ -198,7 +206,7 @@ def main() -> None:
         return
     print(f"LEAKAGE: {len(leaks)} occurrence(s)\n")
     for leak in leaks:
-        print(f"[{leak['text']}] \"{leak['needle']}\"  <- {leak['origin']}")
+        print(f'[{leak["text"]}] "{leak["needle"]}"  <- {leak["origin"]}')
         print(f"    ...{leak['context']}...\n")
     print("Replace them with invented values, or add true tool vocabulary to ALLOWED_VOCABULARY.")
     sys.exit(1)

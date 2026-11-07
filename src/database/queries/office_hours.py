@@ -1,5 +1,7 @@
 """SQL for the ``office_hours`` table: weekly office hours (konsultacje) of staff members."""
 
+from __future__ import annotations
+
 from psycopg import Cursor as DBCursor
 
 from database.serialization import row_to_dict
@@ -8,17 +10,20 @@ from database.serialization import row_to_dict
 def delete_office_hours_of_staff(cursor: DBCursor, staff_id: int) -> None:
     """Delete all of one person's office hours.
 
-    Ingestion calls this before inserting the person's current hours, so the
-    database always holds exactly what Informator shows now.
+    Ingestion calls this before inserting the person's current hours, so the database always holds exactly what
+    Informator shows now.
 
     Args:
         cursor: Database cursor to run the SQL on.
         staff_id: Id of the person.
     """
-    cursor.execute("""
+    cursor.execute(
+        """
         DELETE FROM office_hours
         WHERE staff_id = %s;
-    """, (staff_id,))
+    """,
+        (staff_id,),
+    )
 
 
 def insert_office_hour(
@@ -44,12 +49,15 @@ def insert_office_hour(
         source_url: Link to the person's Informator card.
     """
     # Two slots on the same day starting at the same time: keep the first.
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO office_hours
         (staff_id, day_of_week, start_time, end_time, location, comment ,source_url)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (staff_id, day_of_week, start_time) DO NOTHING;
-    """, (staff_id, day_of_week, start_time, end_time, location,comment, source_url))
+    """,
+        (staff_id, day_of_week, start_time, end_time, location, comment, source_url),
+    )
 
 
 def get_office_hour(
@@ -65,19 +73,18 @@ def get_office_hour(
         day_of_week: Only this Polish weekday (case and diacritics ignored); None for all days.
 
     Returns:
-        list[dict]: The person's slots ordered by day and start time. Empty
-        means the person has published no office hours — not that the person
+        list[dict]: The person's slots ordered by day and start time. Empty means the person has published no office
+            hours — not that the person
         does not exist. Each dict:
             ``day_of_week`` (str) — Polish weekday.
-            ``start_time`` / ``end_time`` (str) — e.g. "09:45:00".
-            ``location`` (str | None) — room or "online".
-            ``comment`` (str | None) — note for this slot.
-            ``source_url`` (str) — Informator card.
-            ``last_updated`` (str) — when the row was last written (ISO date-time).
+        ``start_time`` / ``end_time`` (str) — e.g. "09: 45:00". ``location`` (str | None) — room or "online".
+            ``comment`` (str | None) — note for this slot. ``source_url`` (str) — Informator card. ``last_updated``
+            (str) — when the row was last written (ISO date-time).
     """
     # Weekday names would sort alphabetically, so the CASE orders them
     # Monday → Sunday instead.
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT day_of_week, start_time, end_time, location, comment,
                source_url, last_updated
         FROM office_hours
@@ -95,10 +102,11 @@ def get_office_hour(
                 ELSE 8
             END,
             start_time;
-    """, (staff_id, day_of_week, day_of_week))
+    """,
+        (staff_id, day_of_week, day_of_week),
+    )
 
-    columns = ("day_of_week", "start_time", "end_time", "location", "comment",
-               "source_url", "last_updated")
+    columns = ("day_of_week", "start_time", "end_time", "location", "comment", "source_url", "last_updated")
     return [row_to_dict(columns, row) for row in cursor.fetchall()]
 
 

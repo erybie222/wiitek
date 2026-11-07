@@ -1,5 +1,7 @@
 """SQL for the ``courses`` table: courses in each major's study plan, from the ECTS catalogs."""
 
+from __future__ import annotations
+
 from psycopg import Cursor as DBCursor
 
 from database.serialization import row_to_dict
@@ -8,17 +10,20 @@ from database.serialization import row_to_dict
 def delete_courses_of_major(cursor: DBCursor, major_id: int) -> None:
     """Delete all courses of one major.
 
-    Ingestion calls this before storing the major's current catalog, so
-    courses dropped from the catalog also disappear here.
+    Ingestion calls this before storing the major's current catalog, so courses dropped from the catalog also disappear
+    here.
 
     Args:
         cursor: Database cursor to run the SQL on.
         major_id: Id of the major.
     """
-    cursor.execute("""
+    cursor.execute(
+        """
         DELETE FROM courses
         WHERE major_id = %s;
-    """, (major_id,))
+    """,
+        (major_id,),
+    )
 
 
 def upsert_course(
@@ -39,9 +44,8 @@ def upsert_course(
 ) -> None:
     """Insert a course, or update it if the major already has this code in this semester.
 
-    A course is one row of a major's catalog: the same code can be listed on
-    several majors' pages (e.g. PE electives) and in more than one semester,
-    and each listing is stored as its own row.
+    A course is one row of a major's catalog: the same code can be listed on several majors' pages (e.g. PE electives)
+    and in more than one semester, and each listing is stored as its own row.
 
     Args:
         cursor: Database cursor to run the SQL on.
@@ -59,7 +63,8 @@ def upsert_course(
         assessment_type: "Egzamin" (exam) or "Zaliczenie z ocena" (graded credit).
         source_url: Link to the course card PDF, or None if the catalog has none.
     """
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO courses
         (course_code, major_id, semester, name, is_obligatory, is_english, ects,
          hours_lecture, hours_classes, hours_lab, hours_project, assessment_type, source_url)
@@ -77,8 +82,23 @@ def upsert_course(
             assessment_type = EXCLUDED.assessment_type,
             source_url = EXCLUDED.source_url,
             last_updated = CURRENT_TIMESTAMP;
-    """, (code, major_id, semester, name, is_obligatory, is_english, ects,
-          hours_lecture, hours_classes, hours_lab, hours_project, assessment_type, source_url))
+    """,
+        (
+            code,
+            major_id,
+            semester,
+            name,
+            is_obligatory,
+            is_english,
+            ects,
+            hours_lecture,
+            hours_classes,
+            hours_lab,
+            hours_project,
+            assessment_type,
+            source_url,
+        ),
+    )
 
 
 def get_course(
@@ -93,15 +113,12 @@ def get_course(
 
     Args:
         cursor: Database cursor to run the SQL on.
-        major_name: Polish name, or the English name of an English-taught
-            major; letter case and Polish diacritics are ignored.
-        course_name: Only courses whose name contains this text (case is
-            ignored); None for all.
+        major_name: Polish name, or the English name of an English-taught major; letter case and Polish diacritics are
+            ignored.
+        course_name: Only courses whose name contains this text (case is ignored); None for all.
         semester: Only this semester; None for all.
-        is_obligatory: True for obligatory only, False for electives only,
-            None for both.
-        is_english: True for English-taught only, False for Polish only,
-            None for both.
+        is_obligatory: True for obligatory only, False for electives only, None for both.
+        is_english: True for English-taught only, False for Polish only, None for both.
 
     Returns:
         list[dict]: Matching courses ordered by semester and name; empty if
@@ -123,7 +140,8 @@ def get_course(
 
     # Optional filters: each value is passed twice — once for the IS NULL
     # check (None = no filter), once for the comparison.
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT c.course_code, c.name, c.semester, c.is_obligatory, c.is_english,
                c.ects, c.hours_lecture, c.hours_classes, c.hours_lab, c.hours_project,
                c.assessment_type, c.source_url, c.last_updated
@@ -136,17 +154,36 @@ def get_course(
           AND (%s::boolean IS NULL OR c.is_obligatory = %s::boolean)
           AND (%s::boolean IS NULL OR c.is_english = %s::boolean)
         ORDER BY c.semester, c.name;
-    """, (
-        major_name, major_name,
-        course_pattern, course_pattern,
-        semester, semester,
-        is_obligatory, is_obligatory,
-        is_english, is_english,
-    ))
+    """,
+        (
+            major_name,
+            major_name,
+            course_pattern,
+            course_pattern,
+            semester,
+            semester,
+            is_obligatory,
+            is_obligatory,
+            is_english,
+            is_english,
+        ),
+    )
 
-    columns = ("course_code", "name", "semester", "is_obligatory", "is_english", "ects",
-               "hours_lecture", "hours_classes", "hours_lab", "hours_project",
-               "assessment_type", "source_url", "last_updated")
+    columns = (
+        "course_code",
+        "name",
+        "semester",
+        "is_obligatory",
+        "is_english",
+        "ects",
+        "hours_lecture",
+        "hours_classes",
+        "hours_lab",
+        "hours_project",
+        "assessment_type",
+        "source_url",
+        "last_updated",
+    )
     return [row_to_dict(columns, row) for row in cursor.fetchall()]
 
 

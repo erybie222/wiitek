@@ -15,24 +15,40 @@ why the code below writes ``(x.get(key) or {})`` instead of
 ``x.get(key, {})`` — the latter only helps when the key is missing.
 """
 
+from __future__ import annotations
+
 import os
 import time
 from typing import Iterator
-from requests import Session
+
 from psycopg import Cursor as DBCursor
+from requests import Session
 from requests.exceptions import RequestException
 
-from database.queries.office_hours import delete_office_hours_of_staff, insert_office_hour
-from database.queries.departments import delete_departments_not_seen_in_run, upsert_department
-from database.queries.staff import count_staff_not_seen_in_run, delete_staff_not_seen_in_run, upsert_staff
-from database.queries.staff_functions import delete_staff_functions_of_staff, insert_staff_function
+from database.queries.departments import (
+    delete_departments_not_seen_in_run,
+    upsert_department,
+)
+from database.queries.office_hours import (
+    delete_office_hours_of_staff,
+    insert_office_hour,
+)
+from database.queries.staff import (
+    count_staff_not_seen_in_run,
+    delete_staff_not_seen_in_run,
+    upsert_staff,
+)
+from database.queries.staff_functions import (
+    delete_staff_functions_of_staff,
+    insert_staff_function,
+)
 
 BASE_URL = "https://informator.put.poznan.pl"
 FACULTY_SYMBOL = "WIiT"
-PAGE_SIZE = 100          # people per page when listing staff; the API's maximum
-REQUEST_DELAY_S = 0.2    # pause between per-person requests, to go easy on the server
-MAX_RETRIES = 3          # attempts per API call before giving up
-RETRY_BACKOFF_S = 2.0    # wait before the 2nd attempt; doubles before the 3rd
+PAGE_SIZE = 100  # people per page when listing staff; the API's maximum
+REQUEST_DELAY_S = 0.2  # pause between per-person requests, to go easy on the server
+MAX_RETRIES = 3  # attempts per API call before giving up
+RETRY_BACKOFF_S = 2.0  # wait before the 2nd attempt; doubles before the 3rd
 # Above this share of stored staff missing from a run, nobody is deleted: more
 # likely an incomplete staff list from the API than that many people leaving.
 MAX_STAFF_REMOVAL_SHARE = 0.2
@@ -78,22 +94,19 @@ def create_session() -> Session:
 def api_call(session: Session, action: str, post: bool = True) -> dict:
     """Call one Informator API action and return the data it sends back.
 
-    Network errors and responses that are not JSON are retried, with a
-    growing pause between attempts.
+    Network errors and responses that are not JSON are retried, with a growing pause between attempts.
 
     Args:
         session: Session from ``create_session``.
-        action: Everything after ``?do=`` in the URL, e.g.
-            ``"Card.CardShow&uuid=..."``.
-        post: Send a POST request if True, a GET request if False (the
-            organization tree is the only GET endpoint used).
+        action: Everything after ``?do=`` in the URL, e.g. ``"Card.CardShow&uuid=..."``.
+        post: Send a POST request if True, a GET request if False (the organization tree is the only GET endpoint used).
 
     Returns:
         dict: The ``result`` part of the response.
 
     Raises:
-        InformatorSessionError: The session is not valid — the API redirected
-            to the login page or reported an unsolved captcha.
+        InformatorSessionError: The session is not valid — the API redirected to the login page or reported an unsolved
+            captcha.
         RuntimeError: The API reported a failure, or every attempt failed.
     """
     url = f"{BASE_URL}/?do={action}"
@@ -154,8 +167,7 @@ def iter_units(node: dict, depth: int = 0) -> Iterator[tuple[dict, int]]:
 
     Args:
         node: The unit to start from.
-        depth: How deep ``node`` is; the starting unit is 0, its direct
-            sub-units 1, and so on.
+        depth: How deep ``node`` is; the starting unit is 0, its direct sub-units 1, and so on.
 
     Returns:
         Iterator[tuple[dict, int]]: Pairs of (unit, its depth).
@@ -168,8 +180,8 @@ def iter_units(node: dict, depth: int = 0) -> Iterator[tuple[dict, int]]:
 def fetch_staff(session: Session, unit_id: int) -> Iterator[dict]:
     """List every employee of a unit, including the units below it.
 
-    The API returns at most ``PAGE_SIZE`` people per request, so this keeps
-    requesting the next page until all are fetched.
+    The API returns at most ``PAGE_SIZE`` people per request, so this keeps requesting the next page until all are
+    fetched.
 
     Args:
         session: Session from ``create_session``.
@@ -183,7 +195,8 @@ def fetch_staff(session: Session, unit_id: int) -> Iterator[dict]:
         result = api_call(
             session,
             f"Organization.OrganizationUnitDetails&id={unit_id}"
-            f"&page={page}&max_results={PAGE_SIZE}&user_type=&query_name=", True
+            f"&page={page}&max_results={PAGE_SIZE}&user_type=&query_name=",
+            True,
         )
         employees = result["employees"]
         yield from employees["items"]
@@ -197,9 +210,8 @@ def pick_primary_position(
 ) -> tuple[str | None, str | None]:
     """Choose which of a person's jobs describes them, and return its unit and title.
 
-    A person can hold several positions. The one in the most specific WIiT
-    unit wins (a zakład beats the institute it belongs to). The unit and the
-    job title are taken from the same position so they always match.
+    A person can hold several positions. The one in the most specific WIiT unit wins (a zakład beats the institute it
+    belongs to). The unit and the job title are taken from the same position so they always match.
 
     Args:
         positions: The person's positions, from ``employment.data.positions``.
@@ -242,9 +254,8 @@ def build_location(meeting: dict) -> str | None:
 def sync_office_hours(cursor: DBCursor, session: Session, staff_id: int, uuid: str, source_url: str) -> int:
     """Make the database hold exactly the office hours currently on one person's card.
 
-    The person's stored slots are deleted and the current ones inserted, so
-    slots removed from Informator also disappear here. Only weekly slots are
-    stored; one-off meetings on a specific date are skipped.
+    The person's stored slots are deleted and the current ones inserted, so slots removed from Informator also disappear
+    here. Only weekly slots are stored; one-off meetings on a specific date are skipped.
 
     Args:
         cursor: Database cursor to run the SQL on.
@@ -284,15 +295,13 @@ def sync_office_hours(cursor: DBCursor, session: Session, staff_id: int, uuid: s
 def sync_functions(cursor: DBCursor, staff_id: int, functions: dict, source_url: str) -> int:
     """Make the database hold exactly the administrative functions on one person's card.
 
-    The person's stored functions (e.g. "Dyrektor instytutu") are deleted and
-    the current ones inserted, so a function the person no longer holds
-    disappears here too.
+    The person's stored functions (e.g. "Dyrektor instytutu") are deleted and the current ones inserted, so a function
+    the person no longer holds disappears here too.
 
     Args:
         cursor: Database cursor to run the SQL on.
         staff_id: The person's id in the database.
-        functions: The functions from the person's card
-            (``employment.data.functions``); may be None.
+        functions: The functions from the person's card (``employment.data.functions``); may be None.
         source_url: Link to the person's card, stored as the source.
 
     Returns:
@@ -320,10 +329,9 @@ def sync_functions(cursor: DBCursor, staff_id: int, functions: dict, source_url:
 def remove_staff_and_units_not_seen(cursor: DBCursor) -> None:
     """Delete staff and units that Informator no longer lists, e.g. people who left WIiT.
 
-    Runs only after the whole staff list was stored. If more than
-    ``MAX_STAFF_REMOVAL_SHARE`` of the stored staff would go, nothing is
-    deleted and a warning is printed; ``clean_db.py`` plus a full run is then
-    the way to accept the change.
+    Runs only after the whole staff list was stored. If more than ``MAX_STAFF_REMOVAL_SHARE`` of the stored staff would
+    go, nothing is deleted and a warning is printed; ``clean_db.py`` plus a full run is then the way to accept the
+    change.
 
     Args:
         cursor: Database cursor of the ingestion run (one transaction).
@@ -344,20 +352,17 @@ def remove_staff_and_units_not_seen(cursor: DBCursor) -> None:
 def ingest_informator(cursor: DBCursor) -> None:
     """Store WIiT's units, then every staff member with their functions and office hours.
 
-    People without an e-mail or without a full name are skipped, because the
-    e-mail is what identifies a person in the database. If one person's
-    office hours fail to load, that is printed and the next person follows;
-    an expired session stops the whole step. Only when every person was
-    processed are staff and units that Informator no longer lists deleted
-    (see ``remove_staff_and_units_not_seen``).
+    People without an e-mail or without a full name are skipped, because the e-mail is what identifies a person in the
+    database. If one person's office hours fail to load, that is printed and the next person follows; an expired session
+    stops the whole step. Only when every person was processed are staff and units that Informator no longer lists
+    deleted (see ``remove_staff_and_units_not_seen``).
 
     Args:
         cursor: Database cursor to run the SQL on (the caller commits).
 
     Raises:
         InformatorSessionError: The session cookie is missing or no longer valid.
-        RuntimeError: WIiT was not found in Informator's organization tree,
-            or an API call failed.
+        RuntimeError: WIiT was not found in Informator's organization tree, or an API call failed.
     """
     print("Starting Informator PP staff scraper...")
     session = create_session()
@@ -446,5 +451,3 @@ def ingest_informator(cursor: DBCursor) -> None:
     # Reached only if the loop above finished: an exception (e.g. an expired
     # session) leaves before this, so a partial run never deletes anyone.
     remove_staff_and_units_not_seen(cursor)
-
-

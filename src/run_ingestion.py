@@ -19,13 +19,18 @@ transaction's start. A commit in between would make everything written
 before it look stale.
 """
 
+from datetime import date
+
+from database.connection import close_pool, get_db_connection
 from database.queries.faculties import insert_wiit_faculty
 from database.queries.majors import upsert_major
-from database.connection import get_db_connection, close_pool
 from scrapers.html_ects import ingest_ects_catalog
 from scrapers.informator_staff_office_hours import ingest_informator
-from scrapers.pdf_thresholds import ThresholdsPdfError, find_thresholds_pdf, ingest_thresholds_pdf
-from datetime import date
+from scrapers.pdf_thresholds import (
+    ThresholdsPdfError,
+    find_thresholds_pdf,
+    ingest_thresholds_pdf,
+)
 
 # Exactly one file must match. Its years are read from the table header, so
 # replacing it with a newer PDF (keeping this name prefix) needs no code change.
@@ -56,14 +61,18 @@ STUDY_PATH = "stacjonarne/studia%20pierwszego%20stopnia"
 # Polish-taught first-cycle majors, spelled exactly as in the catalog URLs and
 # the thresholds PDF (the PDF match ignores letter case).
 WIIT_MAJORS_PL_FIRST_CYCLE = [
-    'Informatyka', 'Bioinformatyka', 'Teleinformatyka', 'Cyberbezpieczeństwo', 'Mikroelektronika i komunikacja cyfrowa'
+    "Informatyka",
+    "Bioinformatyka",
+    "Teleinformatyka",
+    "Cyberbezpieczeństwo",
+    "Mikroelektronika i komunikacja cyfrowa",
 ]
 
 # English-taught first-cycle majors as (Polish name, English name). Both are
 # stored, so a question may name the major either way, and both build the
 # catalog URL.
 WIIT_MAJORS_EN_FIRST_CYCLE = [
-    ('Sztuczna inteligencja', 'Artificial Intelligence'),
+    ("Sztuczna inteligencja", "Artificial Intelligence"),
 ]
 
 # TODO: add second-cycle (master's) majors and part-time studies. Both need
@@ -72,14 +81,13 @@ WIIT_MAJORS_EN_FIRST_CYCLE = [
 #
 # WIIT_MAJORS_EN_SECOND_CYCLE = []
 
+
 def main() -> None:
     """Run every ingestion step on one database cursor and commit once at the end.
 
-    The steps and why they run in this order are described at the top of
-    this module.
+    The steps and why they run in this order are described at the top of this module.
     """
     print("Starting PUT_Bot ingestion pipeline...")
-
 
     try:
         with get_db_connection() as conn:
@@ -92,7 +100,7 @@ def main() -> None:
                 major_id = upsert_major(
                     cursor,
                     major_name=major,
-                    degree='bachelor-of-engineering',
+                    degree="bachelor-of-engineering",
                     study_mode="full-time",
                     profile="general-academic",
                     faculty="WIiT",
@@ -107,7 +115,7 @@ def main() -> None:
                 major_id = upsert_major(
                     cursor,
                     major_name=major[0],
-                    degree='bachelor-of-engineering',
+                    degree="bachelor-of-engineering",
                     study_mode="full-time",
                     profile="general-academic",
                     faculty="WIiT",
@@ -127,7 +135,6 @@ def main() -> None:
             except ThresholdsPdfError as error:
                 print(f"Thresholds PDF skipped, stored thresholds kept: {error}")
 
-
             # Informator needs a manual browser cookie that often expires; a
             # failure here skips staff data instead of rolling back the run.
             try:
@@ -136,6 +143,7 @@ def main() -> None:
                 print(f"Informator staff scraping aborted: {error}")
     finally:
         close_pool()
+
 
 if __name__ == "__main__":
     main()

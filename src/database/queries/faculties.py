@@ -1,5 +1,7 @@
 """SQL for the ``faculties`` table: the faculties the system has data for (today only WIiT)."""
 
+from __future__ import annotations
+
 from psycopg import Cursor as DBCursor
 
 from database.serialization import row_to_dict
@@ -8,8 +10,7 @@ from database.serialization import row_to_dict
 def insert_wiit_faculty(cursor: DBCursor) -> None:
     """Insert the WIiT faculty row; does nothing if it already exists.
 
-    Majors and units refer to the faculty by its symbol, so this must run
-    before anything else is ingested.
+    Majors and units refer to the faculty by its symbol, so this must run before anything else is ingested.
 
     Args:
         cursor: Database cursor to run the SQL on.
@@ -28,9 +29,7 @@ def get_faculties(cursor: DBCursor) -> list[dict]:
         cursor: Database cursor to run the SQL on.
 
     Returns:
-        list[dict]: One dict per faculty:
-            ``symbol`` (str) — short code, e.g. "WIiT".
-            ``name`` (str) — full Polish name.
+        list[dict]: One dict per faculty: ``symbol`` (str) — short code, e.g. "WIiT". ``name`` (str) — full Polish name.
     """
     cursor.execute("""
         SELECT symbol, name FROM faculties ORDER BY name;

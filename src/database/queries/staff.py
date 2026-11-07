@@ -1,5 +1,7 @@
 """SQL for the ``staff`` table: faculty employees, from Informator."""
 
+from __future__ import annotations
+
 from psycopg import Cursor as DBCursor
 
 from database.serialization import row_to_dict
@@ -28,8 +30,7 @@ def upsert_staff(
         academic_title: Academic title, e.g. "dr hab. inż.", or None.
         position: Job title, e.g. "Profesor uczelni", or None.
         user_type: Kind of employee as Informator labels it, or None.
-        department: Name of the unit the person works in (must be stored in
-            ``departments``), or None.
+        department: Name of the unit the person works in (must be stored in ``departments``), or None.
         email: E-mail address; identifies the person.
         phone: Phone number(s), comma-separated, or None.
         source_url: Link to the person's Informator card.
@@ -39,7 +40,8 @@ def upsert_staff(
     """
     # On conflict RETURNING gives the id of the existing row, so the id is
     # stable across re-runs for the same e-mail.
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO staff
         (first_name, last_name, academic_title, position, user_type, department, email, phone, source_url)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -55,7 +57,9 @@ def upsert_staff(
             source_url = EXCLUDED.source_url,
             last_updated = CURRENT_TIMESTAMP
         RETURNING id;
-    """, (first_name, last_name, academic_title, position, user_type, department, email, phone, source_url))
+    """,
+        (first_name, last_name, academic_title, position, user_type, department, email, phone, source_url),
+    )
     return cursor.fetchone()[0]
 
 
@@ -70,15 +74,12 @@ def get_staff(
     Args:
         cursor: Database cursor to run the SQL on.
         last_name: Last name; letter case and Polish diacritics are ignored.
-        first_name: Only people with exactly this first name (case and diacritics ignored);
-            None for any.
-        department: Only people in exactly this unit (case and diacritics
-            ignored); None
-            for any.
+        first_name: Only people with exactly this first name (case and diacritics ignored); None for any.
+        department: Only people in exactly this unit (case and diacritics ignored); None for any.
 
     Returns:
-        list[dict]: Every match. WIiT has different people with the same
-        name, so several rows are possible; the caller must then ask which
+        list[dict]: Every match. WIiT has different people with the same name, so several rows are possible; the caller
+            must then ask which
         person is meant instead of picking one. Each dict:
             ``id`` (int) — pass this to the office-hours and functions lookups.
             ``first_name`` / ``last_name`` (str) — name.
@@ -91,7 +92,8 @@ def get_staff(
     """
     # Optional filters: each value is passed twice — once for the IS NULL
     # check (None = no filter), once for the comparison.
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT id, first_name, last_name, academic_title, position, user_type,
                department, email, phone, source_url
         FROM staff
@@ -99,18 +101,30 @@ def get_staff(
           AND (%s::text IS NULL OR LOWER(unaccent(first_name)) = LOWER(unaccent(%s::text)))
           AND (%s::text IS NULL OR LOWER(unaccent(department)) = LOWER(unaccent(%s::text)))
         ORDER BY first_name, last_name;
-    """, (last_name, first_name, first_name, department, department))
+    """,
+        (last_name, first_name, first_name, department, department),
+    )
 
-    columns = ("id", "first_name", "last_name", "academic_title", "position",
-               "user_type", "department", "email", "phone", "source_url")
+    columns = (
+        "id",
+        "first_name",
+        "last_name",
+        "academic_title",
+        "position",
+        "user_type",
+        "department",
+        "email",
+        "phone",
+        "source_url",
+    )
     return [row_to_dict(columns, row) for row in cursor.fetchall()]
 
 
 def count_staff_not_seen_in_run(cursor: DBCursor) -> tuple[int, int]:
     """Count the staff members the current ingestion run has not written.
 
-    A row written in this run has ``last_updated`` equal to
-    ``CURRENT_TIMESTAMP``, which Postgres fixes at the start of the
+    A row written in this run has ``last_updated`` equal to ``CURRENT_TIMESTAMP``, which Postgres fixes at the start of
+    the
     transaction. So this only works while the whole run is one transaction.
 
     Args:
@@ -132,10 +146,9 @@ def count_staff_not_seen_in_run(cursor: DBCursor) -> tuple[int, int]:
 def delete_staff_not_seen_in_run(cursor: DBCursor) -> int:
     """Delete the staff members the current ingestion run has not written.
 
-    Their office hours and functions go with them (``ON DELETE CASCADE``).
-    Call this only after the whole staff list was fetched: a run cut short
-    would delete everyone it did not reach. Like ``count_staff_not_seen_in_run``,
-    it relies on the whole run being one transaction.
+    Their office hours and functions go with them (``ON DELETE CASCADE``). Call this only after the whole staff list was
+    fetched: a run cut short would delete everyone it did not reach. Like ``count_staff_not_seen_in_run``, it relies on
+    the whole run being one transaction.
 
     Args:
         cursor: Database cursor of the ingestion run.

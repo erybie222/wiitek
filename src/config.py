@@ -4,11 +4,13 @@
 together. Each settings class reads the environment when it is created.
 """
 
+from __future__ import annotations
+
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
 
 _ROOT_PATH = Path(__file__).resolve().parent.parent
 # override=True: values in .env win over variables already set in the shell.
@@ -22,8 +24,8 @@ REASONING_EFFORTS = ("none", "low", "medium", "high", "xhigh", "max")
 def _optional(name: str) -> str | None:
     """Read an environment variable, treating an empty value as "not set".
 
-    This matters for model settings: sending an empty temperature to the API
-    is an error, so a blank line in ``.env`` must mean "don't send it".
+    This matters for model settings: sending an empty temperature to the API is an error, so a blank line in ``.env``
+    must mean "don't send it".
 
     Args:
         name: Variable name.
@@ -103,24 +105,20 @@ class DatabaseSettings:
             "port": self.port,
         }
 
+
 @dataclass
 class AgentSettings:
     """Settings of the model that answers questions (OPENAI_* variables in ``.env``).
 
-    A model accepts either a temperature or a reasoning effort, never both;
-    ``.env.example`` explains which. If the reasoning effort is left blank it
-    becomes ``"none"``, because OpenAI allows tool calling on reasoning models
-    only at that level — and the agent cannot work without tools.
+    A model accepts either a temperature or a reasoning effort, never both; ``.env.example`` explains which. If the
+    reasoning effort is left blank it becomes ``"none"``, because OpenAI allows tool calling on reasoning models only at
+    that level — and the agent cannot work without tools.
     """
 
     api_key: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
     model: str = field(default_factory=lambda: os.getenv("OPENAI_MODEL", "gpt-6-luna"))
-    temperature: float | None = field(
-        default_factory=lambda: _optional_float("OPENAI_TEMPERATURE")
-    )
-    reasoning_effort: str | None = field(
-        default_factory=lambda: _reasoning_effort("OPENAI_REASONING_EFFORT") or "none"
-    )
+    temperature: float | None = field(default_factory=lambda: _optional_float("OPENAI_TEMPERATURE"))
+    reasoning_effort: str | None = field(default_factory=lambda: _reasoning_effort("OPENAI_REASONING_EFFORT") or "none")
 
     def require_api_key(self) -> str:
         """Return the OpenAI API key, or fail with a clear message if it is missing.
@@ -135,9 +133,7 @@ class AgentSettings:
             RuntimeError: OPENAI_API_KEY is missing or empty.
         """
         if not self.api_key:
-            raise RuntimeError(
-                "OPENAI_API_KEY is not set — copy it into .env (see .env.example)."
-            )
+            raise RuntimeError("OPENAI_API_KEY is not set — copy it into .env (see .env.example).")
         return self.api_key
 
 
@@ -145,19 +141,14 @@ class AgentSettings:
 class JudgeSettings:
     """Settings of the model that scores answers during evaluation (JUDGE_* in ``.env``).
 
-    Kept separate from ``AgentSettings`` so the judge can be a different model.
-    Unlike the agent, a blank reasoning effort stays blank (the model's own
-    default is used): the judge does not call tools, so it has no such limit.
+    Kept separate from ``AgentSettings`` so the judge can be a different model. Unlike the agent, a blank reasoning
+    effort stays blank (the model's own default is used): the judge does not call tools, so it has no such limit.
     """
 
     api_key: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
     model: str = field(default_factory=lambda: os.getenv("JUDGE_MODEL", "gpt-6-luna"))
-    temperature: float | None = field(
-        default_factory=lambda: _optional_float("JUDGE_TEMPERATURE")
-    )
-    reasoning_effort: str | None = field(
-        default_factory=lambda: _reasoning_effort("JUDGE_REASONING_EFFORT")
-    )
+    temperature: float | None = field(default_factory=lambda: _optional_float("JUDGE_TEMPERATURE"))
+    reasoning_effort: str | None = field(default_factory=lambda: _reasoning_effort("JUDGE_REASONING_EFFORT"))
 
     def require_api_key(self) -> str:
         """Return the OpenAI API key, or fail with a clear message if it is missing.
@@ -172,7 +163,5 @@ class JudgeSettings:
             RuntimeError: OPENAI_API_KEY is missing or empty.
         """
         if not self.api_key:
-            raise RuntimeError(
-                "OPENAI_API_KEY is not set — copy it into .env (see .env.example)."
-            )
+            raise RuntimeError("OPENAI_API_KEY is not set — copy it into .env (see .env.example).")
         return self.api_key

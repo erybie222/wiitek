@@ -21,15 +21,18 @@ Usage:
     uv run python -m eval.check_prompt_formatting   # exit code 1 when a prompt breaks
 """
 
+from __future__ import annotations
+
 import sys
 
 from langchain_core.runnables import RunnableLambda
 
-# Must come before the app imports below: it puts src/ on the import path.
 from ._src_path import ROOT
 
+# isort: split
 from templates import SYSTEM_PROMPT
 
+# Must come before the app imports below: it puts src/ on the import path.
 from .answer_judges import judge_correctness, judge_faithfulness
 from .benchmark_loader import load_cases
 from .calibrate_judges import CALIBRATION_PATH, judge_item, load_calibration_items
@@ -111,14 +114,13 @@ def check_judge_inputs_land() -> list[str]:
 def check_real_data_builds() -> list[str]:
     """Build both judge prompts for every benchmark case and calibration item.
 
-    Benchmark cases have no answer, so a placeholder stands in; their
-    earlier questions get placeholder answers. Calibration items are built
-    exactly as ``calibrate_judges`` builds them.
+    Benchmark cases have no answer, so a placeholder stands in; their earlier questions get placeholder answers.
+    Calibration items are built exactly as ``calibrate_judges`` builds them.
 
     Returns:
         list[str]: One description per file that would not load, or per
         case or item that failed, e.g. "benchmark.yaml: ValueError: ..." or
-        "calibration:<id>: ValidationError: ..."; empty when all built.
+        "calibration: <id>: ValidationError: ..."; empty when all built.
     """
     problems = []
     try:
@@ -128,8 +130,7 @@ def check_real_data_builds() -> list[str]:
         problems.append(f"{BENCHMARK_PATH.name}: {type(error).__name__}: {error}")
     for case in cases:
         earlier_turns = [
-            EarlierTurn(question=question, answer="earlier answer")
-            for question in case.get("earlier_questions") or []
+            EarlierTurn(question=question, answer="earlier answer") for question in case.get("earlier_questions") or []
         ]
         try:
             judge_faithfulness(ECHO_JUDGE, case, "answer", [], earlier_turns)
@@ -140,7 +141,7 @@ def check_real_data_builds() -> list[str]:
     try:
         items = load_calibration_items(CALIBRATION_PATH)
     except Exception as error:
-        return problems + [f"{CALIBRATION_PATH.name}: {type(error).__name__}: {error}"]
+        return [*problems, f"{CALIBRATION_PATH.name}: {type(error).__name__}: {error}"]
     for item in items:
         try:
             judge_item(item, ECHO_JUDGE, ECHO_JUDGE)
@@ -152,9 +153,8 @@ def check_real_data_builds() -> list[str]:
 def main() -> None:
     """Run every check, print what broke, and exit with code 1 if anything did.
 
-    The real-data pass runs only on templates that passed: a broken template
-    fails every case in the same way, and listing them all would bury the one
-    line that says what to fix.
+    The real-data pass runs only on templates that passed: a broken template fails every case in the same way, and
+    listing them all would bury the one line that says what to fix.
     """
     problems = check_system_prompt() + check_judge_inputs_land()
     if not problems:

@@ -6,6 +6,8 @@ returns — ``Decimal`` (e.g. threshold points), ``datetime`` and ``time``
 builds its result rows with ``row_to_dict`` so this never fails.
 """
 
+from __future__ import annotations
+
 from datetime import datetime, time
 from decimal import Decimal
 from typing import Any
@@ -19,8 +21,7 @@ def _to_json_safe(value: Any) -> Any:
 
     Returns:
         Any: A ``float`` for a ``Decimal``, an ISO-format string such as
-        ``"09:45:00"`` for a ``datetime`` or ``time``, and any other value
-        unchanged.
+        ``"09: 45:00"`` for a ``datetime`` or ``time``, and any other value unchanged.
     """
     if isinstance(value, Decimal):
         return float(value)

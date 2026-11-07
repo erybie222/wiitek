@@ -17,10 +17,10 @@ The project has two halves.
 **Ingestion (offline).** Scrapers collect data from three official sources and store it in
 PostgreSQL:
 
-| Source | What it provides | Scraper |
-|---|---|---|
-| ECTS course catalogs on put.poznan.pl | courses per major and semester, ECTS, hours, exam or not | `src/scrapers/html_ects.py` |
-| Admission thresholds PDF | minimum points and number of places per major and year | `src/scrapers/pdf_thresholds.py` |
+| Source                                           | What it provides                                             | Scraper                                         |
+| ------------------------------------------------ | ------------------------------------------------------------ | ----------------------------------------------- |
+| ECTS course catalogs on put.poznan.pl            | courses per major and semester, ECTS, hours, exam or not     | `src/scrapers/html_ects.py`                     |
+| Admission thresholds PDF                         | minimum points and number of places per major and year       | `src/scrapers/pdf_thresholds.py`                |
 | Informator PP (the university's staff directory) | faculty units, staff, administrative functions, office hours | `src/scrapers/informator_staff_office_hours.py` |
 
 **Answering (online).** An LLM agent (LangChain + OpenAI) receives the question and answers it
@@ -105,8 +105,8 @@ verified answers) and scores each answer in two layers:
 1. **Tool calls**, checked by code: did the agent call the right tools, and did they return the
    right data?
 2. **The answer**, checked by a second LLM (the "judge"): is every claim backed by the data the
-   agent received (*faithfulness* — this is the hallucination check), and is the answer right
-   compared to the reference (*correctness*)?
+   agent received (_faithfulness_ — this is the hallucination check), and is the answer right
+   compared to the reference (_correctness_)?
 
 The console shows a summary; the full report, with every answer and tool call, is saved to
 `eval/results/`, named by date and what was run (e.g. `2026-10-31_09-42-00_category-dopytania.json`).

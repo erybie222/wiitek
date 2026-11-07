@@ -17,11 +17,15 @@ equally valid. ``score_tool_calls_with_alternatives`` scores the agent against
 ``expected_calls`` first and tries the alternatives only when that fails.
 """
 
-from . import _src_path  # noqa: F401  (puts src/ on sys.path)
+from __future__ import annotations
 
 from langchain_core.messages import BaseMessage
 
+from . import _src_path  # noqa: F401  (puts src/ on sys.path)
+
+# isort: split
 from database.repository import TOOLS
+
 from .schemas import ToolCall, ToolScores
 
 TOOLS_BY_NAME = {tool.name: tool for tool in TOOLS}
@@ -35,18 +39,16 @@ PREV_ID = "$prev.id"
 def fill_prev_id(args: dict, previous_rows: list | None) -> dict:
     """Replace ``$prev.id`` in an expected call's arguments with a real id.
 
-    Staff ids change on every ingestion, so the benchmark chains calls with
-    ``$prev.id`` instead of hard-coding an id.
+    Staff ids change on every ingestion, so the benchmark chains calls with ``$prev.id`` instead of hard-coding an id.
 
     Args:
         args: Arguments of one expected call, as written in the benchmark.
         previous_rows: Rows returned by the preceding expected call, or None.
 
     Returns:
-        dict: Copy of ``args`` with each ``$prev.id`` replaced by the ``id`` of
-        the single row in ``previous_rows`` — or None when there are zero or
-        several rows, since picking one would hide the ambiguity. Other values
-        are unchanged.
+        dict: Copy of ``args`` with each ``$prev.id`` replaced by the ``id`` of the single row in ``previous_rows`` — or
+            None when there are zero or several rows, since picking one would hide the ambiguity. Other values
+            are unchanged.
     """
     resolved = {}
     for key, value in (args or {}).items():
@@ -62,25 +64,21 @@ def fill_prev_id(args: dict, previous_rows: list | None) -> dict:
 def run_expected_calls(calls: list[dict]) -> list[ToolCall]:
     """Run a case's expected calls on the live DB to get the correct data.
 
-    This is the answer key for ``got_right_data``: ``score_tool_calls``
-    compares the agent's results with these. It is computed on every run, not
-    stored in the benchmark, because ids and data change between ingestions.
-    Calls run in order; ``$prev.id`` resolves from the last call that
-    returned a list.
+    This is the answer key for ``got_right_data``: ``score_tool_calls`` compares the agent's results with these. It is
+    computed on every run, not stored in the benchmark, because ids and data change between ingestions. Calls run in
+    order; ``$prev.id`` resolves from the last call that returned a list.
 
     Args:
-        calls: Expected calls to run, each ``{"tool", "args"}`` — never a
-            search call with ``expected_sections``, which has no arguments
-            to run (see ``returned_expected_section``).
+        calls: Expected calls to run, each ``{"tool", "args"}`` — never a search call with ``expected_sections``, which
+            has no arguments to run (see ``returned_expected_section``).
 
     Returns:
-        list[ToolCall]: One per expected call, in order. ``args`` are the
-        arguments actually used (after ``fill_prev_id``), ``result`` is what
-        the tool returned.
+        list[ToolCall]: One per expected call, in order. ``args`` are the arguments actually used (after
+            ``fill_prev_id``), ``result`` is what the tool returned.
 
     Raises:
-        Exception: Whatever the tool raises (a DB error, or ``KeyError`` for
-            an unknown tool name); ``score_tool_calls`` catches it.
+        Exception: Whatever the tool raises (a DB error, or ``KeyError`` for an unknown tool name); ``score_tool_calls``
+            catches it.
     """
     results = []
     previous_rows = None
@@ -88,9 +86,7 @@ def run_expected_calls(calls: list[dict]) -> list[ToolCall]:
         name = call["tool"]
         args = fill_prev_id(call.get("args"), previous_rows)
         # Bare args would return only the text; a tool_call returns the ToolMessage with the artifact.
-        message = TOOLS_BY_NAME[name].invoke(
-            {"type": "tool_call", "name": name, "args": args, "id": "expected"}
-        )
+        message = TOOLS_BY_NAME[name].invoke({"type": "tool_call", "name": name, "args": args, "id": "expected"})
         result = message.artifact
         results.append(ToolCall(name=name, args=args, result=result))
         if isinstance(result, list):
@@ -101,17 +97,15 @@ def run_expected_calls(calls: list[dict]) -> list[ToolCall]:
 def agent_tool_calls(messages: list[BaseMessage]) -> list[ToolCall]:
     """Extract the agent's tool calls from its messages, each with its result.
 
-    Calls and results are joined by ``tool_call_id``, not position: a batched
-    turn interleaves them. A failure is detected by ``status``, not
-    ``artifact is None``, since ``get_department`` returns None legitimately.
+    Calls and results are joined by ``tool_call_id``, not position: a batched turn interleaves them. A failure is
+    detected by ``status``, not ``artifact is None``, since ``get_department`` returns None legitimately.
 
     Args:
         messages: The message list returned by ``agent.ask``.
 
     Returns:
-        list[ToolCall]: One per agent tool call, in call order. ``result`` is
-        what the tool returned, the error text if the call failed, or None if
-        no result message was found.
+        list[ToolCall]: One per agent tool call, in call order. ``result`` is what the tool returned, the error text if
+            the call failed, or None if no result message was found.
     """
     results = {
         message.tool_call_id: message.content if message.status == "error" else message.artifact
@@ -129,9 +123,8 @@ def agent_tool_calls(messages: list[BaseMessage]) -> list[ToolCall]:
 def returned_expected_section(expected_sections: list[dict], agent_calls: list[ToolCall], tool: str) -> bool:
     """Say whether any of the agent's searches returned one of the sections a case accepts.
 
-    A search is scored this way instead of being run like other expected
-    calls: its ranking depends on how the query is worded, so the benchmark
-    names the sections a correct answer can come from, not a query.
+    A search is scored this way instead of being run like other expected calls: its ranking depends on how the query is
+    worded, so the benchmark names the sections a correct answer can come from, not a query.
 
     Args:
         expected_sections: The accepted sections, each ``{"course_code", "section"}``,
@@ -140,11 +133,9 @@ def returned_expected_section(expected_sections: list[dict], agent_calls: list[T
         tool: Name of the search tool; only the agent's calls to it are read.
 
     Returns:
-        bool: True when some search result row has the section of an
-        accepted entry and lists that entry's course code among its
-        ``courses`` (one row per syllabus fragment; a fragment shared by
-        several courses, like the faculty-wide PE syllabus, lists them all).
-        False when no search was made, or none returned such a row.
+        bool: True when some search result row has the section of an accepted entry and lists that entry's course code
+            among its ``courses`` (one row per syllabus fragment; a fragment shared by several courses, like the
+            faculty-wide PE syllabus, lists them all). False when no search was made, or none returned such a row.
     """
     rows = [
         row
@@ -164,40 +155,31 @@ def returned_expected_section(expected_sections: list[dict], agent_calls: list[T
 def score_tool_calls(expected: list[dict], agent_calls: list[ToolCall]) -> ToolScores:
     """Score the agent's tool calls on one case against one route (no LLM).
 
-    A route is ``expected_calls`` or one of the case's ``alternative_routes``;
-    ``score_tool_calls_with_alternatives`` decides which to score against.
-    Two questions, answered separately so a failure says which one went wrong:
+    A route is ``expected_calls`` or one of the case's ``alternative_routes``; ``score_tool_calls_with_alternatives``
+    decides which to score against. Two questions, answered separately so a failure says which one went wrong:
 
     - ``called_right_tools`` — did the agent call every tool the case needs?
-      Only tool names count. Extra calls do not fail it; they are counted
-      once, in ``extra_calls``, instead of being punished twice.
+    Only tool names count. Extra calls do not fail it; they are counted once, in ``extra_calls``, instead of being
+    punished twice.
     - ``got_right_data`` — did those calls return the right data? The
-      expected calls are run on the DB (``run_expected_calls``) and each
-      result must equal the result of some agent call to the same tool.
-      Arguments are never compared, so "Informatyka" vs "informatyka" costs
-      nothing as long as the data is the same. Caveat: if the right result is
-      empty, a wrong call that also finds nothing passes too. An expected
-      search (a call with ``expected_sections`` instead of ``args``) is not
-      run: some agent search must have returned one of its sections
-      (``returned_expected_section``).
+    expected calls are run on the DB (``run_expected_calls``) and each result must equal the result of some agent call
+    to the same tool. Arguments are never compared, so "Informatyka" vs "informatyka" costs nothing as long as the data
+    is the same. Caveat: if the right result is empty, a wrong call that also finds nothing passes too. An expected
+    search (a call with ``expected_sections`` instead of ``args``) is not run: some agent search must have returned one
+    of its sections (``returned_expected_section``).
 
-    An expected call marked ``only_resolves_prev_id: true`` is run but never
-    required from the agent: it exists only so the next call's ``$prev.id``
-    has one row to read. E.g. turn 1 finds two people with one name, turn 2
-    says which one — the agent rightly takes that person's id from the
-    conversation, while the benchmark needs a filtered ``get_staff`` to know
-    the id. Such a call counts in no score; an agent that makes it anyway
-    gets one ``extra_calls``.
+    An expected call marked ``only_resolves_prev_id: true`` is run but never required from the agent: it exists only so
+    the next call's ``$prev.id`` has one row to read. E.g. turn 1 finds two people with one name, turn 2 says which one
+    — the agent rightly takes that person's id from the conversation, while the benchmark needs a filtered ``get_staff``
+    to know the id. Such a call counts in no score; an agent that makes it anyway gets one ``extra_calls``.
 
     Args:
-        expected: The route's calls, each ``{"tool", "args"}`` — or, for a
-            search, ``{"tool", "expected_sections"}``; empty means no tools
-            are needed.
+        expected: The route's calls, each ``{"tool", "args"}`` — or, for a search, ``{"tool", "expected_sections"}``;
+            empty means no tools are needed.
         agent_calls: The agent's calls with results, from ``agent_tool_calls``.
 
     Returns:
-        ToolScores: The case's layer-1 result. What each field means is
-        described on the ``ToolScores`` model.
+        ToolScores: The case's layer-1 result. What each field means is described on the ``ToolScores`` model.
     """
     called_tools = [call.name for call in agent_calls]
     # Calls the agent must make; only_resolves_prev_id calls are run below but not required.
@@ -259,8 +241,7 @@ def score_tool_calls(expected: list[dict], agent_calls: list[ToolCall]) -> ToolS
         if not needed:
             continue
         agent_call = next(
-            (call for call in unused_agent_calls
-             if call.name == correct.name and call.result == correct.result),
+            (call for call in unused_agent_calls if call.name == correct.name and call.result == correct.result),
             None,
         )
         if agent_call is None:
@@ -294,42 +275,32 @@ def agent_followed_route(scores: ToolScores) -> bool:
         scores: Result of ``score_tool_calls`` against that route.
 
     Returns:
-        bool: True when the agent called every tool of the route and got the
-        same data. ``got_right_data`` None counts as a pass only for a route
-        with no calls — never when the route's calls could not be run.
+        bool: True when the agent called every tool of the route and got the same data. ``got_right_data`` None counts
+            as a pass only for a route with no calls — never when the route's calls could not be run.
     """
-    return (
-        scores.called_right_tools
-        and scores.got_right_data is not False
-        and scores.expected_calls_error is None
-    )
+    return scores.called_right_tools and scores.got_right_data is not False and scores.expected_calls_error is None
 
 
 def score_tool_calls_with_alternatives(case: dict, agent_calls: list[ToolCall]) -> ToolScores:
     """Score the agent's tool calls on one case, accepting any listed route.
 
-    ``expected_calls`` is scored first. Only when the agent did not follow it
-    are the case's ``alternative_routes`` tried, in order, so their expected
-    calls hit the database only when needed. The first alternative the agent
-    followed is returned. A case that follows no route is scored against
-    ``expected_calls`` — the route the prompt prescribes — so its failure
-    says what was missing from that route.
+    ``expected_calls`` is scored first. Only when the agent did not follow it are the case's ``alternative_routes``
+    tried, in order, so their expected calls hit the database only when needed. The first alternative the agent followed
+    is returned. A case that follows no route is scored against ``expected_calls`` — the route the prompt prescribes —
+    so its failure says what was missing from that route.
 
-    When ``expected_calls`` cannot be run, alternatives are not tried: that
-    is a benchmark or database problem, and an alternative passing would
-    hide it.
+    When ``expected_calls`` cannot be run, alternatives are not tried: that is a benchmark or database problem, and an
+    alternative passing would hide it.
 
     Args:
-        case: One benchmark case, with ``expected_calls`` and optionally
-            ``alternative_routes`` (each ``{"why", "calls"}``).
+        case: One benchmark case, with ``expected_calls`` and optionally ``alternative_routes`` (each ``{"why",
+            "calls"}``).
         agent_calls: The agent's calls with results, from ``agent_tool_calls``.
 
     Returns:
-        ToolScores: The scores of the route the agent followed, with
-        ``scored_against_route`` saying which one ("expected_calls" or
-        "alternative_routes[N]"); the ``expected_calls`` scores if it
-        followed none. If an alternative's calls could not be run, its
-        error is put in ``expected_calls_error`` of the returned scores.
+        ToolScores: The scores of the route the agent followed, with ``scored_against_route`` saying which one
+            ("expected_calls" or "alternative_routes[N]"); the ``expected_calls`` scores if it followed none. If an
+            alternative's calls could not be run, its error is put in ``expected_calls_error`` of the returned scores.
     """
     expected_route_scores = score_tool_calls(case.get("expected_calls") or [], agent_calls)
     if agent_followed_route(expected_route_scores) or expected_route_scores.expected_calls_error:
@@ -339,9 +310,11 @@ def score_tool_calls_with_alternatives(case: dict, agent_calls: list[ToolCall]) 
         route_name = f"alternative_routes[{position}]"
         alternative_scores = score_tool_calls(alternative["calls"] or [], agent_calls)
         if alternative_scores.expected_calls_error:
-            return expected_route_scores.model_copy(update={
-                "expected_calls_error": f"{route_name}: {alternative_scores.expected_calls_error}",
-            })
+            return expected_route_scores.model_copy(
+                update={
+                    "expected_calls_error": f"{route_name}: {alternative_scores.expected_calls_error}",
+                }
+            )
         if agent_followed_route(alternative_scores):
             return alternative_scores.model_copy(update={"scored_against_route": route_name})
 

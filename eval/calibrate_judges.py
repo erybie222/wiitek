@@ -18,18 +18,21 @@ Usage:
     uv run python -m eval.calibrate_judges --only prog-zmyslona-liczba
 """
 
+from __future__ import annotations
+
 import argparse
 from collections import Counter
 from pathlib import Path
 
 import yaml
 
-# Must come before the app imports below: it puts src/ on the import path.
 from ._src_path import ROOT
 
+# isort: split
 from agent import build_judge_model
 from config import JudgeSettings
 
+# Must come before the app imports below: it puts src/ on the import path.
 from .answer_judges import judge_correctness, judge_faithfulness
 from .report import save_report_json
 from .schemas import Correctness, EarlierTurn, Faithfulness, ToolCall
@@ -47,13 +50,11 @@ def load_calibration_items(path: Path) -> list[dict]:
         path: Path to judge_calibration.yaml.
 
     Returns:
-        list[dict]: The items in file order, as written (see the file's header
-        for the keys).
+        list[dict]: The items in file order, as written (see the file's header for the keys).
 
     Raises:
-        ValueError: An id repeats, an item has no ``expected_faithfulness`` /
-            ``expected_correctness``, or expects a correctness score without
-            ``expected_answer`` or ``expected_behavior`` to compare with.
+        ValueError: An id repeats, an item has no ``expected_faithfulness`` / ``expected_correctness``, or expects a
+            correctness score without ``expected_answer`` or ``expected_behavior`` to compare with.
     """
     items = yaml.safe_load(path.read_text(encoding="utf-8"))["items"]
     seen = set()
@@ -78,8 +79,8 @@ def judge_item(item: dict, faith_judge, correct_judge) -> dict:
         correct_judge: The judge model replying in the ``Correctness`` format.
 
     Returns:
-        dict: ``"faithfulness"`` / ``"correctness"`` → the judge's reply, only
-        for the judges the item has an ``expected_*`` score for.
+        dict: ``"faithfulness"`` / ``"correctness"`` → the judge's reply, only for the judges the item has an
+            ``expected_*`` score for.
     """
     tool_calls = [ToolCall(**call) for call in item.get("tool_calls") or []]
     earlier_turns = [EarlierTurn(**turn) for turn in item.get("earlier_turns") or []]
@@ -98,16 +99,11 @@ def calibration_totals(results: list[dict]) -> dict:
         results: One entry per judged score: ``judge``, ``expected``, ``got``.
 
     Returns:
-        dict: Judge name → always the same keys:
-            ``exact_match`` (``{"hits", "total"}``) — got == expected.
-            ``zeros_caught`` (``{"hits", "total"}``) — of the answers that
-                should score 0, how many did.
-            ``missed_zeros`` (int) — should be 0, got more: errors the judge
-                does not see.
-            ``false_zeros`` (int) — should be above 0, got 0: harmless
-                answers the judge punishes.
-            ``confusion`` (dict[str, int]) — ``"expected 0 -> got 1"`` →
-                count, only for mismatches.
+        dict: Judge name → always the same keys: ``exact_match`` (``{"hits", "total"}``) — got == expected.
+            ``zeros_caught`` (``{"hits", "total"}``) — of the answers that should score 0, how many did.
+        ``missed_zeros`` (int) — should be 0, got more: errors the judge does not see.
+        ``false_zeros`` (int) — should be above 0, got 0: harmless answers the judge punishes. ``confusion`` (dict[str,
+            int]) — ``"expected 0 -> got 1"`` → count, only for mismatches.
     """
     totals = {}
     for judge in JUDGES:
@@ -118,17 +114,18 @@ def calibration_totals(results: list[dict]) -> dict:
             "zeros_caught": {"hits": sum(r["got"] == 0 for r in should_be_zero), "total": len(should_be_zero)},
             "missed_zeros": sum(r["got"] > 0 for r in should_be_zero),
             "false_zeros": sum(r["got"] == 0 and r["expected"] > 0 for r in rows),
-            "confusion": dict(Counter(
-                f"expected {r['expected']} -> got {r['got']}" for r in rows if r["got"] != r["expected"]
-            )),
+            "confusion": dict(
+                Counter(f"expected {r['expected']} -> got {r['got']}" for r in rows if r["got"] != r["expected"])
+            ),
         }
     return totals
 
 
 def main() -> None:
     """Run the calibration from the command line, print the result and save a report."""
-    parser = argparse.ArgumentParser(prog="python -m eval.calibrate_judges",
-                                     description="Check the judges against answers with known scores.")
+    parser = argparse.ArgumentParser(
+        prog="python -m eval.calibrate_judges", description="Check the judges against answers with known scores."
+    )
     parser.add_argument("--only", help="Judge only the item with this id.")
     parser.add_argument("--repeat", type=int, default=1, help="Judge every item N times (default 1).")
     args = parser.parse_args()
@@ -158,12 +155,19 @@ def main() -> None:
                 evidence = reply.claims if judge == "faithfulness" else reply.facts
                 if not ok:
                     flagged = [e for e in evidence if e.status not in ("supported", "present")]
-                    details += [f"      {judge}: [{e.status}] {getattr(e, 'text', None) or e.fact}"
-                                for e in flagged[:2]] or [f"      {judge}: (nothing flagged)"]
-                results.append({
-                    "id": item["id"], "run": repeat, "judge": judge, "expected": expected,
-                    "got": reply.score, "evidence": [e.model_dump() for e in evidence],
-                })
+                    details += [
+                        f"      {judge}: [{e.status}] {getattr(e, 'text', None) or e.fact}" for e in flagged[:2]
+                    ] or [f"      {judge}: (nothing flagged)"]
+                results.append(
+                    {
+                        "id": item["id"],
+                        "run": repeat,
+                        "judge": judge,
+                        "expected": expected,
+                        "got": reply.score,
+                        "evidence": [e.model_dump() for e in evidence],
+                    }
+                )
             print("  ".join(marks))
             for line in details:
                 print(line)
@@ -177,16 +181,22 @@ def main() -> None:
             continue
         print(f"{judge}:")
         print(f"  exact match:   {t['exact_match']['hits']}/{t['exact_match']['total']}")
-        print(f"  zeros caught:  {t['zeros_caught']['hits']}/{t['zeros_caught']['total']}"
-              f"   missed zeros: {t['missed_zeros']}   false zeros: {t['false_zeros']}")
+        print(
+            f"  zeros caught:  {t['zeros_caught']['hits']}/{t['zeros_caught']['total']}"
+            f"   missed zeros: {t['missed_zeros']}   false zeros: {t['false_zeros']}"
+        )
         for key, count in t["confusion"].items():
             print(f"    {key}: {count}")
 
-    label = "judge-calibration" + (f"_only-{args.only}" if args.only else "") + \
-        (f"_repeat-{args.repeat}" if args.repeat > 1 else "")
+    label = (
+        "judge-calibration"
+        + (f"_only-{args.only}" if args.only else "")
+        + (f"_repeat-{args.repeat}" if args.repeat > 1 else "")
+    )
     report_path = save_report_json(
         {"run_options": {"only": args.only, "repeat": args.repeat}, "totals": totals, "results": results},
-        RESULTS_DIR, label,
+        RESULTS_DIR,
+        label,
     )
     print(f"\nReport: {report_path.relative_to(ROOT)}")
 

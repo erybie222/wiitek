@@ -95,39 +95,39 @@ meta:
 progi_punktowe:
   - id: prog-informatyka-2025
     question: "Jaki był próg punktowy na Informatykę (stacjonarne, I stopnia) w roku 2025?"
-    entities: {kierunek: "Informatyka", rok: 2025, tryb: "stacjonarne", stopien: "pierwszego stopnia"}
-    expected_data: {min_points: 759.00, capacity: 210}
+    entities: { kierunek: "Informatyka", rok: 2025, tryb: "stacjonarne", stopien: "pierwszego stopnia" }
+    expected_data: { min_points: 759.00, capacity: 210 }
     expected_answer: "759,00 pkt, limit przyjęć: 210 miejsc."
     source: *progi
     expected_calls:
       - tool: get_admission_threshold
-        args: {major_name: "Informatyka", year: 2025}
+        args: { major_name: "Informatyka", year: 2025 }
 
   - id: prog-bioinformatyka-2021
     question: "Jaki był próg na Bioinformatykę w 2021 roku?"
-    entities: {kierunek: "Bioinformatyka", rok: 2021}
-    expected_data: {min_points: 525.50, capacity: 60}
+    entities: { kierunek: "Bioinformatyka", rok: 2021 }
+    expected_data: { min_points: 525.50, capacity: 60 }
     expected_answer: "525,50 pkt, limit przyjęć: 60 miejsc."
     notes: "Limit przyjęć zmieniał się między latami (70 w 2022, 60 w 2021) — dobry test, że bot nie zakłada stałego limitu."
     source: *progi
     expected_calls:
       - tool: get_admission_threshold
-        args: {major_name: "Bioinformatyka", year: 2021}
+        args: { major_name: "Bioinformatyka", year: 2021 }
 
   - id: prog-cyberbezpieczenstwo-2025
     question: "Jaki był próg na Cyberbezpieczeństwo w 2025 roku?"
-    entities: {kierunek: "Cyberbezpieczeństwo", rok: 2025}
-    expected_data: {min_points: 807.50, capacity: 90}
+    entities: { kierunek: "Cyberbezpieczeństwo", rok: 2025 }
+    expected_data: { min_points: 807.50, capacity: 90 }
     expected_answer: "807,50 pkt, limit przyjęć: 90 miejsc."
     notes: "Nowy kierunek — 2025 to jedyny rok z danymi w źródle."
     source: *progi
     expected_calls:
       - tool: get_admission_threshold
-        args: {major_name: "Cyberbezpieczeństwo", year: 2025}
+        args: { major_name: "Cyberbezpieczeństwo", year: 2025 }
 
   - id: prog-edge-cyberbezpieczenstwo-brak-danych
     question: "Jaki był próg na Cyberbezpieczeństwo w 2022 roku?"
-    entities: {kierunek: "Cyberbezpieczeństwo", rok: 2022}
+    entities: { kierunek: "Cyberbezpieczeństwo", rok: 2022 }
     expected_data: null
     expected_answer: "Nie wiem — nie ma danych o progu na Cyberbezpieczeństwo za 2022 rok w źródle."
     edge_case: "rok bez danych (kierunek za młody), nie wolno ekstrapolować"
@@ -135,11 +135,11 @@ progi_punktowe:
     # expected_calls note: Must query and get nothing back — refusing without checking is the failure this catches.
     expected_calls:
       - tool: get_admission_threshold
-        args: {major_name: "Cyberbezpieczeństwo", year: 2022}
+        args: { major_name: "Cyberbezpieczeństwo", year: 2022 }
 
   - id: prog-edge-kierunek-poza-zakresem
     question: "Jaki był próg na Automatykę i robotykę w 2025 roku?"
-    entities: {kierunek: "Automatyka i robotyka", rok: 2025}
+    entities: { kierunek: "Automatyka i robotyka", rok: 2025 }
     expected_data: null
     expected_answer: "Nie wiem — Automatyka i robotyka nie jest kierunkiem WIiT obsługiwanym przez ten projekt. Odpowiedź musi powiedzieć, że takiego kierunku nie ma w bazie; samo „nie ma progu za 2025” jest niepełne, bo sugeruje, że kierunek istnieje i mógłby mieć próg w innym roku."
     edge_case: "kierunek istnieje w źródle PDF, ale poza zakresem WIiT tego projektu"
@@ -151,7 +151,7 @@ progi_punktowe:
     #   for 2025" that this case is about.
     expected_calls:
       - tool: get_admission_threshold
-        args: {major_name: "Automatyka i robotyka", year: 2025}
+        args: { major_name: "Automatyka i robotyka", year: 2025 }
       - tool: get_major
         args: {}
     alternative_routes:
@@ -164,7 +164,7 @@ progi_punktowe:
 
   - id: prog-edge-rok-w-przyszlosci
     question: "Jaki będzie próg na Informatykę w 2030 roku?"
-    entities: {kierunek: "Informatyka", rok: 2030}
+    entities: { kierunek: "Informatyka", rok: 2030 }
     expected_data: null
     expected_answer: "Nie wiem — progi na przyszłe lata nie są znane, tylko historyczne dane z rekrutacji."
     edge_case: "rok spoza zakresu danych źródłowych"
@@ -173,18 +173,18 @@ progi_punktowe:
     #   anyway because thresholds are stored per year, so the database can answer it.
     expected_calls:
       - tool: get_admission_threshold
-        args: {major_name: "Informatyka", year: 2030}
+        args: { major_name: "Informatyka", year: 2030 }
 
   - id: prog-edge-tryb-niestacjonarny
     question: "Jaki był próg na Informatykę niestacjonarną w 2024 roku?"
-    entities: {kierunek: "Informatyka", rok: 2024, tryb: "niestacjonarne"}
+    entities: { kierunek: "Informatyka", rok: 2024, tryb: "niestacjonarne" }
     expected_data: null
     expected_answer: "Nie wiem — nie ma danych o progu dla Informatyki niestacjonarnej za 2024 rok."
     edge_case: "tryb studiów spoza obecnego zakresu ingestii"
     source: *progi
     expected_calls:
       - tool: get_admission_threshold
-        args: {major_name: "Informatyka", year: 2024, study_mode: "part-time"}
+        args: { major_name: "Informatyka", year: 2024, study_mode: "part-time" }
     alternative_routes:
       - why: "Wyszukanie bez filtra trybu zwraca wiersz stacjonarny; odpowiedź
           „w danych jest tylko tryb stacjonarny: 805,25 pkt” jest pełniejsza i
@@ -192,7 +192,7 @@ progi_punktowe:
           sprawdza warstwa 2 (faithfulness), nie ta."
         calls:
           - tool: get_admission_threshold
-            args: {major_name: "Informatyka", year: 2024}
+            args: { major_name: "Informatyka", year: 2024 }
 
 # ---------------------------------------------------------------------------
 # Category 2 — plany_studiow (study plans / ECTS courses)
@@ -200,105 +200,132 @@ progi_punktowe:
 plany_studiow:
   - id: przedmiot-alin-semestr
     question: "W którym semestrze na Informatyce jest 'Algebra liniowa' i ile ma ECTS?"
-    entities: {kierunek: "Informatyka", przedmiot: "Algebra liniowa"}
-    expected_data: {semester: 1, ects: 2, is_obligatory: true, hours_lecture: 16, hours_classes: 16, assessment_type: "Zaliczenie z ocena"}
+    entities: { kierunek: "Informatyka", przedmiot: "Algebra liniowa" }
+    expected_data:
+      {
+        semester: 1,
+        ects: 2,
+        is_obligatory: true,
+        hours_lecture: 16,
+        hours_classes: 16,
+        assessment_type: "Zaliczenie z ocena",
+      }
     expected_answer: "Semestr 1, 2 ECTS, zaliczenie na ocenę (bez egzaminu)."
     source: *przedmioty
     expected_calls:
       - tool: get_course
-        args: {major_name: "Informatyka", course_name: "Algebra liniowa"}
+        args: { major_name: "Informatyka", course_name: "Algebra liniowa" }
 
   - id: przedmiot-anam-egzamin
     question: "Czy 'Analiza matematyczna' na Informatyce kończy się egzaminem i ile ma ECTS?"
-    entities: {kierunek: "Informatyka", przedmiot: "Analiza matematyczna"}
-    expected_data: {semester: 1, ects: 6, is_obligatory: true, hours_lecture: 30, hours_classes: 30, assessment_type: "Egzamin"}
+    entities: { kierunek: "Informatyka", przedmiot: "Analiza matematyczna" }
+    expected_data:
+      { semester: 1, ects: 6, is_obligatory: true, hours_lecture: 30, hours_classes: 30, assessment_type: "Egzamin" }
     expected_answer: "Tak, egzamin. 6 ECTS."
     notes: "assessment_type w bazie to dosłownie string 'Egzamin' wykryty po markerze (E) w komórce godzin wykładowych."
     source: *przedmioty
     expected_calls:
       - tool: get_course
-        args: {major_name: "Informatyka", course_name: "Analiza matematyczna"}
+        args: { major_name: "Informatyka", course_name: "Analiza matematyczna" }
 
   - id: przedmiot-sop-semestr2
     question: "Ile ECTS ma 'Systemy operacyjne' na Informatyce i czy to egzamin?"
-    entities: {kierunek: "Informatyka", przedmiot: "Systemy operacyjne"}
-    expected_data: {semester: 2, ects: 5, is_obligatory: true, hours_lecture: 30, hours_lab: 30, assessment_type: "Egzamin"}
+    entities: { kierunek: "Informatyka", przedmiot: "Systemy operacyjne" }
+    expected_data:
+      { semester: 2, ects: 5, is_obligatory: true, hours_lecture: 30, hours_lab: 30, assessment_type: "Egzamin" }
     expected_answer: "5 ECTS, egzamin."
     source: *przedmioty
     expected_calls:
       - tool: get_course
-        args: {major_name: "Informatyka", course_name: "Systemy operacyjne"}
+        args: { major_name: "Informatyka", course_name: "Systemy operacyjne" }
 
   - id: przedmiot-python-obieralny
     question: "Czy 'Podstawy programowania - Python' jest obowiązkowe na pierwszym semestrze Informatyki?"
-    entities: {kierunek: "Informatyka", przedmiot: "Podstawy programowania - Python", semestr: 1}
-    expected_data: {semester: 1, ects: 4, is_obligatory: false, hours_lecture: 24, hours_lab: 30}
+    entities: { kierunek: "Informatyka", przedmiot: "Podstawy programowania - Python", semestr: 1 }
+    expected_data: { semester: 1, ects: 4, is_obligatory: false, hours_lecture: 24, hours_lab: 30 }
     expected_answer: "Nie, to przedmiot obieralny (do wyboru), 4 ECTS."
     source: *przedmioty
     expected_calls:
       - tool: get_course
-        args: {major_name: "Informatyka", course_name: "Python", semester: 1}
+        args: { major_name: "Informatyka", course_name: "Python", semester: 1 }
 
   - id: przedmiot-suma-ects-semestr1-obowiazkowe
     question: "Ile punktów ECTS łącznie mają obowiązkowe przedmioty w semestrze 1 na Informatyce?"
-    entities: {kierunek: "Informatyka", semestr: 1, is_obligatory: true}
+    entities: { kierunek: "Informatyka", semestr: 1, is_obligatory: true }
     expected_data:
-      courses: {ALIN: 2, ANAM: 6, JANG: 2, LOG: 3, MATD: 6, NINF: 3, BHP: 0, BIBL: 0}
+      courses: { ALIN: 2, ANAM: 6, JANG: 2, LOG: 3, MATD: 6, NINF: 3, BHP: 0, BIBL: 0 }
       total_ects: 22
     expected_answer: "22 ECTS (Algebra liniowa 2 + Analiza matematyczna 6 + Język angielski 2 + Logika obliczeniowa 3 + Matematyka dyskretna 6 + Narzędzia informatyki 3 + BHP 0 + Usługi biblioteczne 0)."
     notes: "Wymaga agregacji (SUM), nie samej listy wierszy — patrz CLAUDE.md backlog #11."
     source: *przedmioty
     expected_calls:
       - tool: get_course
-        args: {major_name: "Informatyka", semester: 1, is_obligatory: true}
+        args: { major_name: "Informatyka", semester: 1, is_obligatory: true }
 
   - id: przedmiot-edge-nieistniejacy
     question: "Ile ECTS ma przedmiot 'Głębokie sieci neuronowe' na pierwszym semestrze Informatyki?"
-    entities: {kierunek: "Informatyka", przedmiot: "Głębokie sieci neuronowe", semestr: 1}
+    entities: { kierunek: "Informatyka", przedmiot: "Głębokie sieci neuronowe", semestr: 1 }
     expected_data: null
     expected_answer: "Nie wiem — nie ma takiego przedmiotu w planie studiów Informatyki na semestrze 1."
     edge_case: "nieistniejący przedmiot — bot nie może zgadywać ani podstawiać podobnej nazwy"
     source: *przedmioty
     expected_calls:
       - tool: get_course
-        args: {major_name: "Informatyka", course_name: "Głębokie sieci neuronowe", semester: 1}
+        args: { major_name: "Informatyka", course_name: "Głębokie sieci neuronowe", semester: 1 }
 
   - id: przedmiot-wdp-cyberbezpieczenstwo-egzamin
     question: "Ile ECTS ma 'Wprowadzenie do programowania' na Cyberbezpieczeństwie i czy to egzamin?"
-    entities: {kierunek: "Cyberbezpieczeństwo", przedmiot: "Wprowadzenie do programowania"}
-    expected_data: {semester: 1, ects: 5, is_obligatory: true, hours_lecture: 30, hours_lab: 30, assessment_type: "Egzamin"}
+    entities: { kierunek: "Cyberbezpieczeństwo", przedmiot: "Wprowadzenie do programowania" }
+    expected_data:
+      { semester: 1, ects: 5, is_obligatory: true, hours_lecture: 30, hours_lab: 30, assessment_type: "Egzamin" }
     expected_answer: "5 ECTS, egzamin."
     source: *przedmioty_cyber
     expected_calls:
       - tool: get_course
-        args: {major_name: "Cyberbezpieczeństwo", course_name: "Wprowadzenie do programowania"}
+        args: { major_name: "Cyberbezpieczeństwo", course_name: "Wprowadzenie do programowania" }
 
   - id: przedmiot-wdc-cyberbezpieczenstwo-projekt
     question: "Ile godzin projektu ma 'Wstęp do cyberbezpieczeństwa' i ile to ECTS?"
-    entities: {kierunek: "Cyberbezpieczeństwo", przedmiot: "Wstęp do cyberbezpieczeństwa"}
-    expected_data: {semester: 1, ects: 4, is_obligatory: true, hours_lecture: 30, hours_project: 30, assessment_type: "Zaliczenie z ocena"}
+    entities: { kierunek: "Cyberbezpieczeństwo", przedmiot: "Wstęp do cyberbezpieczeństwa" }
+    expected_data:
+      {
+        semester: 1,
+        ects: 4,
+        is_obligatory: true,
+        hours_lecture: 30,
+        hours_project: 30,
+        assessment_type: "Zaliczenie z ocena",
+      }
     expected_answer: "30h projektu, 4 ECTS, bez egzaminu (zaliczenie na ocenę)."
     notes: "Przykład kursu z niezerowymi hours_project — pozostałe przykłady w tym pliku mają P=0."
     source: *przedmioty_cyber
     expected_calls:
       - tool: get_course
-        args: {major_name: "Cyberbezpieczeństwo", course_name: "Wstęp do cyberbezpieczeństwa"}
+        args: { major_name: "Cyberbezpieczeństwo", course_name: "Wstęp do cyberbezpieczeństwa" }
 
   - id: przedmiot-edge-ta-sama-nazwa-inny-kierunek
     question: "Ile ECTS ma 'Algebra liniowa' — na Cyberbezpieczeństwie i na Informatyce?"
-    entities: {przedmiot: "Algebra liniowa", kierunki: ["Cyberbezpieczeństwo", "Informatyka"]}
+    entities: { przedmiot: "Algebra liniowa", kierunki: ["Cyberbezpieczeństwo", "Informatyka"] }
     expected_data:
-      Cyberbezpieczeństwo: {course_code: "S1Cybez1>ALIN", ects: 5, assessment_type: "Egzamin", hours_lecture: 30, hours_classes: 30}
-      Informatyka: {course_code: "S1Inf1>ALIN", ects: 2, assessment_type: "Zaliczenie z ocena", hours_lecture: 16, hours_classes: 16}
+      Cyberbezpieczeństwo:
+        { course_code: "S1Cybez1>ALIN", ects: 5, assessment_type: "Egzamin", hours_lecture: 30, hours_classes: 30 }
+      Informatyka:
+        {
+          course_code: "S1Inf1>ALIN",
+          ects: 2,
+          assessment_type: "Zaliczenie z ocena",
+          hours_lecture: 16,
+          hours_classes: 16,
+        }
     expected_answer: "To dwa różne przedmioty mimo tej samej nazwy: na Cyberbezpieczeństwie 5 ECTS z egzaminem, na Informatyce 2 ECTS bez egzaminu."
     edge_case: "ten sam `name`, różny `course_code` i różna treść w zależności od kierunku — test na to, że bot dopytuje/rozróżnia po kierunku, a nie dopasowuje tylko po nazwie przedmiotu"
     source: *przedmioty_cyber
     # expected_calls note: The answer needs both majors, so stopping at one call is a genuine miss.
     expected_calls:
       - tool: get_course
-        args: {major_name: "Cyberbezpieczeństwo", course_name: "Algebra liniowa"}
+        args: { major_name: "Cyberbezpieczeństwo", course_name: "Algebra liniowa" }
       - tool: get_course
-        args: {major_name: "Informatyka", course_name: "Algebra liniowa"}
+        args: { major_name: "Informatyka", course_name: "Algebra liniowa" }
 
 # ---------------------------------------------------------------------------
 # Category 3 — kierunki (majors)
@@ -307,7 +334,15 @@ kierunki:
   - id: kierunek-lista-wiit
     question: "Jakie kierunki I stopnia stacjonarne (obsługiwane przez tego bota) prowadzi WIiT?"
     expected_data:
-      majors: ["Informatyka", "Bioinformatyka", "Teleinformatyka", "Cyberbezpieczeństwo", "Mikroelektronika i komunikacja cyfrowa", "Sztuczna inteligencja"]
+      majors:
+        [
+          "Informatyka",
+          "Bioinformatyka",
+          "Teleinformatyka",
+          "Cyberbezpieczeństwo",
+          "Mikroelektronika i komunikacja cyfrowa",
+          "Sztuczna inteligencja",
+        ]
     expected_answer: "Informatyka, Bioinformatyka, Teleinformatyka, Cyberbezpieczeństwo, Mikroelektronika i komunikacja cyfrowa, Sztuczna inteligencja."
     notes: "To lista tego, co faktycznie jest w WIIT_MAJORS_*, nie pełna oferta WIiT — dobry test, żeby bot nie 'dopowiadał' kierunków spoza swojego zakresu."
     source: *kierunki
@@ -318,27 +353,28 @@ kierunki:
 
   - id: kierunek-ai-jezyk
     question: "Czy Sztuczna inteligencja jest kierunkiem anglojęzycznym?"
-    entities: {kierunek: "Sztuczna inteligencja"}
-    expected_data: {english_name: "Artificial Intelligence", degree: "bachelor-of-engineering", study_mode: "full-time"}
+    entities: { kierunek: "Sztuczna inteligencja" }
+    expected_data:
+      { english_name: "Artificial Intelligence", degree: "bachelor-of-engineering", study_mode: "full-time" }
     expected_answer: "Tak — Sztuczna inteligencja jest kierunkiem anglojęzycznym (ma angielską nazwę: Artificial Intelligence)."
     source: *kierunki
     expected_calls:
       - tool: get_major
-        args: {major_name: "Sztuczna inteligencja"}
+        args: { major_name: "Sztuczna inteligencja" }
 
   - id: kierunek-tryb-teleinformatyka
     question: "Jaki tryb studiów jest ingestowany dla Teleinformatyki — stacjonarny czy niestacjonarny?"
-    entities: {kierunek: "Teleinformatyka"}
-    expected_data: {study_mode: "full-time"}
+    entities: { kierunek: "Teleinformatyka" }
+    expected_data: { study_mode: "full-time" }
     expected_answer: "Stacjonarny (`full-time`)."
     source: *kierunki
     expected_calls:
       - tool: get_major
-        args: {major_name: "Teleinformatyka"}
+        args: { major_name: "Teleinformatyka" }
 
   - id: kierunek-edge-poza-zakresem
     question: "Czy WIiT prowadzi kierunek 'Informatyka i ekonometria'?"
-    entities: {kierunek: "Informatyka i ekonometria"}
+    entities: { kierunek: "Informatyka i ekonometria" }
     expected_data: null
     expected_answer: "Nie wiem — kierunku „Informatyka i ekonometria” nie ma w danych tego projektu. Odpowiedź nie może stwierdzić, że WIiT go nie prowadzi: baza obejmuje tylko część oferty wydziału."
     edge_case: "nieistniejący/nieobsługiwany kierunek — bot nie może potwierdzić czegoś, czego nie ingestuje"
@@ -357,80 +393,102 @@ kierunki:
 kadra_i_jednostki:
   - id: dept-zaklady-instytutu-informatyki
     question: "Jakie zakłady/jednostki wchodzą w skład Instytutu Informatyki?"
-    entities: {jednostka: "Instytut Informatyki"}
+    entities: { jednostka: "Instytut Informatyki" }
     expected_data:
-      children: ["Europejskie Centrum Bioinformatyki i Genomiki", "Zakład Badań Operacyjnych i Sztucznej Inteligencji", "Zakład Inteligentnych Systemów Wspomagania Decyzji", "Zakład Inżynierii Oprogramowania", "Zakład Systemów Informatycznych", "Zakład Technologii Przetwarzania Danych", "Zakład Teorii Algorytmów i Systemów Programowania", "Zakład Uczenia Maszynowego"]
+      children:
+        [
+          "Europejskie Centrum Bioinformatyki i Genomiki",
+          "Zakład Badań Operacyjnych i Sztucznej Inteligencji",
+          "Zakład Inteligentnych Systemów Wspomagania Decyzji",
+          "Zakład Inżynierii Oprogramowania",
+          "Zakład Systemów Informatycznych",
+          "Zakład Technologii Przetwarzania Danych",
+          "Zakład Teorii Algorytmów i Systemów Programowania",
+          "Zakład Uczenia Maszynowego",
+        ]
     expected_answer: "7 zakładów (Badań Operacyjnych i SI, Inteligentnych Systemów Wspomagania Decyzji, Inżynierii Oprogramowania, Systemów Informatycznych, Technologii Przetwarzania Danych, Teorii Algorytmów i Systemów Programowania, Uczenia Maszynowego) + Europejskie Centrum Bioinformatyki i Genomiki."
     source: *informator
     expected_calls:
       - tool: get_department
-        args: {name: "Instytut Informatyki"}
+        args: { name: "Instytut Informatyki" }
 
   - id: dept-jednostka-nadrzedna
     question: "Jaka jest jednostka nadrzędna (parent) dla Zakładu Uczenia Maszynowego?"
-    entities: {jednostka: "Zakład Uczenia Maszynowego"}
-    expected_data: {parent: "Instytut Informatyki"}
+    entities: { jednostka: "Zakład Uczenia Maszynowego" }
+    expected_data: { parent: "Instytut Informatyki" }
     expected_answer: "Instytut Informatyki."
     source: *informator
     expected_calls:
       - tool: get_department
-        args: {name: "Zakład Uczenia Maszynowego"}
+        args: { name: "Zakład Uczenia Maszynowego" }
 
   # The next three cases were about Instytut Radiokomunikacji until 2026-10-25, when
   # Informator showed it restructured: it is now Zakład Radiokomunikacji under the new
   # Instytut Teleinformatyki, whose director is the former institute's director.
   - id: dept-parent-null-instytut
     question: "Czy Instytut Teleinformatyki ma jednostkę nadrzędną inną niż sam Wydział?"
-    entities: {jednostka: "Instytut Teleinformatyki"}
-    expected_data: {parent: null}
+    entities: { jednostka: "Instytut Teleinformatyki" }
+    expected_data: { parent: null }
     expected_answer: "Nie — leży bezpośrednio pod WIiT."
     source: *informator
     expected_calls:
       - tool: get_department
-        args: {name: "Instytut Teleinformatyki"}
+        args: { name: "Instytut Teleinformatyki" }
 
   - id: dept-edge-brak-podjednostek
     question: "Jakie zakłady wchodzą w skład Instytutu Telekomunikacji Multimedialnej?"
-    entities: {jednostka: "Instytut Telekomunikacji Multimedialnej"}
-    expected_data: {children: []}
+    entities: { jednostka: "Instytut Telekomunikacji Multimedialnej" }
+    expected_data: { children: [] }
     expected_answer: "Żadne — według aktualnego drzewa organizacyjnego Informatora Instytut Telekomunikacji Multimedialnej nie ma podległych zakładów w WIiT."
     edge_case: "pusta lista podjednostek — nie mylić z brakiem danych"
     source: *informator
     expected_calls:
       - tool: get_department
-        args: {name: "Instytut Telekomunikacji Multimedialnej"}
+        args: { name: "Instytut Telekomunikacji Multimedialnej" }
 
   - id: staff-dyrektor-instytutu
     question: "Kto jest dyrektorem Instytutu Teleinformatyki?"
-    entities: {jednostka: "Instytut Teleinformatyki", funkcja: "Dyrektor instytutu"}
-    expected_data: {first_name: "Hanna", last_name: "Bogucka", academic_title: "prof. dr hab. inż.", position: "Profesor", function_name: "Dyrektor instytutu"}
+    entities: { jednostka: "Instytut Teleinformatyki", funkcja: "Dyrektor instytutu" }
+    expected_data:
+      {
+        first_name: "Hanna",
+        last_name: "Bogucka",
+        academic_title: "prof. dr hab. inż.",
+        position: "Profesor",
+        function_name: "Dyrektor instytutu",
+      }
     expected_answer: "prof. dr hab. inż. Hanna Bogucka."
     notes: "staff_functions ('Dyrektor instytutu') jest odrębne od staff.position ('Profesor') — dobry test, że bot nie miesza tych dwóch pól."
     source: *informator
     expected_calls:
       - tool: get_staff_function
-        args: {function_name: "Dyrektor instytutu", department_name: "Instytut Teleinformatyki"}
+        args: { function_name: "Dyrektor instytutu", department_name: "Instytut Teleinformatyki" }
 
   - id: staff-administracyjny-dziekanat
     question: "Jakie stanowisko ma mgr Beata Banaszak i w jakiej jednostce pracuje?"
-    entities: {imie: "Beata", nazwisko: "Banaszak"}
-    expected_data: {position: "Specjalista ds. dydaktyki", department: "Dziekanat Wydziału Informatyki i Telekomunikacji", user_type: "employee_administrative"}
+    entities: { imie: "Beata", nazwisko: "Banaszak" }
+    expected_data:
+      {
+        position: "Specjalista ds. dydaktyki",
+        department: "Dziekanat Wydziału Informatyki i Telekomunikacji",
+        user_type: "employee_administrative",
+      }
     expected_answer: "Specjalista ds. dydaktyki, Dziekanat Wydziału Informatyki i Telekomunikacji."
     source: *informator
     expected_calls:
       - tool: get_staff
-        args: {last_name: "Banaszak", first_name: "Beata"}
+        args: { last_name: "Banaszak", first_name: "Beata" }
 
   - id: staff-edge-nieistniejacy
     question: "Na jakim stanowisku pracuje prof. Zenobiusz Nieistniejący z WIiT?"
-    entities: {nazwisko: "Nieistniejący"}
+    entities: { nazwisko: "Nieistniejący" }
     expected_data: null
     expected_answer: "Nie wiem — nie ma takiej osoby w bazie danych WIiT."
     edge_case: "nieistniejąca osoba — bot nie może zmyślić stanowiska/jednostki"
     source: *informator
     expected_calls:
       - tool: get_staff
-        args: {last_name: "Nieistniejący"}
+        args: { last_name: "Nieistniejący" }
 
 # ---------------------------------------------------------------------------
 # Category 5 — konsultacje (office hours)
@@ -438,46 +496,53 @@ kadra_i_jednostki:
 konsultacje:
   - id: konsultacje-andrzejewski
     question: "O której i gdzie ma konsultacje dr inż. Witold Andrzejewski?"
-    entities: {imie: "Witold", nazwisko: "Andrzejewski"}
-    expected_data: {day_of_week: "poniedziałek", start_time: "09:45", end_time: "13:15", location: "A23 CW17", comment: "najlepiej po umówieniu mailowym"}
+    entities: { imie: "Witold", nazwisko: "Andrzejewski" }
+    expected_data:
+      {
+        day_of_week: "poniedziałek",
+        start_time: "09:45",
+        end_time: "13:15",
+        location: "A23 CW17",
+        comment: "najlepiej po umówieniu mailowym",
+      }
     expected_answer: "Poniedziałek 09:45–13:15, sala A23 CW17 (komentarz: najlepiej po umówieniu mailowym)."
     source: *informator
     expected_calls:
       - tool: get_staff
-        args: {last_name: "Andrzejewski", first_name: "Witold"}
+        args: { last_name: "Andrzejewski", first_name: "Witold" }
       - tool: get_office_hour
-        args: {staff_id: "$prev.id"}
+        args: { staff_id: "$prev.id" }
 
   - id: konsultacje-wojciechowski-marek-wtorek
     question: "Czy dr hab. inż. Marek Wojciechowski (Zakład Technologii Przetwarzania Danych) ma konsultacje we wtorek, i o której?"
-    entities: {imie: "Marek", nazwisko: "Wojciechowski", jednostka: "Zakład Technologii Przetwarzania Danych"}
-    expected_data: {day_of_week: "wtorek", start_time: "12:30", end_time: "14:00", location: "A1 503"}
+    entities: { imie: "Marek", nazwisko: "Wojciechowski", jednostka: "Zakład Technologii Przetwarzania Danych" }
+    expected_data: { day_of_week: "wtorek", start_time: "12:30", end_time: "14:00", location: "A1 503" }
     expected_answer: "Tak, wtorek 12:30–14:00, sala A1 503 (prośba o wcześniejszy kontakt mailowy w celu potwierdzenia terminu; możliwe też spotkanie online)."
     notes: "Celowo zamknięte: listy 'kto z zakładu ma konsultacje' nie da się potwierdzić z próbki ~25/271 osób."
     source: *informator
     expected_calls:
       - tool: get_staff
-        args: {last_name: "Wojciechowski", first_name: "Marek"}
+        args: { last_name: "Wojciechowski", first_name: "Marek" }
       - tool: get_office_hour
-        args: {staff_id: "$prev.id"}
+        args: { staff_id: "$prev.id" }
 
   - id: konsultacje-edge-brak-opublikowanych
     question: "O której konsultacje ma prof. dr hab. inż. Hanna Bogucka?"
-    entities: {imie: "Hanna", nazwisko: "Bogucka"}
-    expected_data: {meetings: []}
+    entities: { imie: "Hanna", nazwisko: "Bogucka" }
+    expected_data: { meetings: [] }
     expected_answer: "Ta osoba obecnie nie ma opublikowanego harmonogramu konsultacji w Informatorze."
     edge_case: "osoba istnieje w bazie, ale bez zapisanych office_hours — to NIE to samo co 'osoba nie istnieje', bot nie powinien tych dwóch przypadków mylić"
     source: *informator
     # expected_calls note: The call must happen and come back empty — that is the only way to tell "no published hours" from "no such person".
     expected_calls:
       - tool: get_staff
-        args: {last_name: "Bogucka", first_name: "Hanna"}
+        args: { last_name: "Bogucka", first_name: "Hanna" }
       - tool: get_office_hour
-        args: {staff_id: "$prev.id"}
+        args: { staff_id: "$prev.id" }
 
   - id: konsultacje-edge-niejednoznaczne-imie-i-nazwisko
     question: "Kiedy konsultacje ma dr Paweł Wojciechowski?"
-    entities: {imie: "Paweł", nazwisko: "Wojciechowski"}
+    entities: { imie: "Paweł", nazwisko: "Wojciechowski" }
     expected_data: null
     expected_answer: null
     expected_behavior: >
@@ -491,18 +556,18 @@ konsultacje:
     # expected_calls note: Stops at get_staff on purpose — calling get_office_hour means picking one of two people, which scores as extra_calls.
     expected_calls:
       - tool: get_staff
-        args: {last_name: "Wojciechowski", first_name: "Paweł"}
+        args: { last_name: "Wojciechowski", first_name: "Paweł" }
 
   - id: konsultacje-edge-nieistniejaca-osoba
     question: "Kiedy konsultacje ma prof. Zenobiusz Nieistniejący z WIiT?"
-    entities: {nazwisko: "Nieistniejący"}
+    entities: { nazwisko: "Nieistniejący" }
     expected_data: null
     expected_answer: "Nie wiem — nie ma takiej osoby w bazie danych WIiT."
     edge_case: "nieistniejąca osoba — bot nie może zmyślić grafiku"
     source: *informator
     expected_calls:
       - tool: get_staff
-        args: {last_name: "Nieistniejący"}
+        args: { last_name: "Nieistniejący" }
 
 # ---------------------------------------------------------------------------
 # Category 6 — poza_zakresem (questions no tool can answer)
@@ -557,7 +622,7 @@ poza_zakresem:
 pytania_po_angielsku:
   - id: en-kierunki-anglojezyczne
     question: "Which majors at WIiT are taught in English?"
-    expected_data: {polish_name: "Sztuczna inteligencja", english_name: "Artificial Intelligence"}
+    expected_data: { polish_name: "Sztuczna inteligencja", english_name: "Artificial Intelligence" }
     expected_answer: "Sztuczna inteligencja (Artificial Intelligence) — the only major with an english_name. Answer in English, keeping the Polish name as stored; giving the stored English name next to it is fine."
     notes: "Angielska nazwa jest w bazie (majors.english_name), wiec odpowiedz moze ja podac — ale obok polskiej nazwy, nie zamiast niej."
     source: *kierunki
@@ -567,24 +632,32 @@ pytania_po_angielsku:
 
   - id: en-przedmiot-ects-po-angielsku
     question: "How many ECTS is 'Wprowadzenie do programowania' on Cyberbezpieczenstwo, and does it end with an exam?"
-    expected_data: {semester: 1, ects: 5, is_obligatory: true, hours_lecture: 30, hours_lab: 30, assessment_type: "Egzamin"}
+    expected_data:
+      { semester: 1, ects: 5, is_obligatory: true, hours_lecture: 30, hours_lab: 30, assessment_type: "Egzamin" }
     expected_answer: "5 ECTS, ends with an exam. English answer; the course name and the assessment_type value stay Polish."
     notes: "Te same dane co przedmiot-wdp-cyberbezpieczenstwo-egzamin, inna mierzona rzecz: jezyk odpowiedzi. Nazwa kierunku bez polskich znakow, bo tak realnie pisza uzytkownicy."
     source: *przedmioty_cyber
     expected_calls:
       - tool: get_course
-        args: {major_name: "Cyberbezpieczeństwo", course_name: "Wprowadzenie do programowania"}
+        args: { major_name: "Cyberbezpieczeństwo", course_name: "Wprowadzenie do programowania" }
 
   - id: en-konsultacje-po-angielsku
     question: "When and where does dr inz. Witold Andrzejewski hold his office hours?"
-    expected_data: {day_of_week: "poniedziałek", start_time: "09:45", end_time: "13:15", location: "A23 CW17", comment: "najlepiej po umówieniu mailowym"}
+    expected_data:
+      {
+        day_of_week: "poniedziałek",
+        start_time: "09:45",
+        end_time: "13:15",
+        location: "A23 CW17",
+        comment: "najlepiej po umówieniu mailowym",
+      }
     expected_answer: "Monday 09:45-13:15, room A23 CW17, with the published note 'najlepiej po umówieniu mailowym'. English answer; the weekday may be rendered as Monday, the room code and the comment stay as stored."
     source: *informator
     expected_calls:
       - tool: get_staff
-        args: {last_name: "Andrzejewski", first_name: "Witold"}
+        args: { last_name: "Andrzejewski", first_name: "Witold" }
       - tool: get_office_hour
-        args: {staff_id: "$prev.id"}
+        args: { staff_id: "$prev.id" }
 
   - id: en-edge-angielska-nazwa-kierunku
     question: "What are the first-semester courses on Artificial Intelligence?"
@@ -608,19 +681,22 @@ pytania_po_angielsku:
       prompt z odpowiedzia uniewaznia pomiar.
     expected_calls:
       - tool: get_course
-        args: {major_name: "Artificial Intelligence", semester: 1}
+        args: { major_name: "Artificial Intelligence", semester: 1 }
 
   - id: en-sylabus-wymagania-statystyka
     question: "What are the prerequisites for Statistics on Artificial Intelligence?"
-    entities: {kierunek: "Sztuczna inteligencja", przedmiot: "Statystyka", sekcja: "Wymagania wstępne"}
-    expected_data: {wymagania_wstepne: "Podstawowa wiedza w zakresie analizy matematycznej, algebry zbiorów oraz rachunku prawdopodobieństwa"}
+    entities: { kierunek: "Sztuczna inteligencja", przedmiot: "Statystyka", sekcja: "Wymagania wstępne" }
+    expected_data:
+      {
+        wymagania_wstepne: "Podstawowa wiedza w zakresie analizy matematycznej, algebry zbiorów oraz rachunku prawdopodobieństwa",
+      }
     expected_answer: "Basic knowledge of mathematical analysis, set algebra and probability theory (prerequisites in the syllabus of 'Statystyka', Sztuczna inteligencja). English answer; the course name may stay Polish, as stored."
     notes: "W bazie przedmiot nazywa się tylko „Statystyka” — angielskiej nazwy przedmiotu nie ma, a sylabusy są tylko po polsku (decyzja fazy 5). Mierzy, czy pytanie po angielsku trafia w polski tekst. Statystyka jest też na Cyberbezpieczeństwie, z innymi wymaganiami wstępnymi."
     source: "https://put.poznan.pl/cards/2026_2027/Sztuczna%20inteligencja_Artificial%20Intelligence/stacjonarne/studia%20pierwszego%20stopnia/3/Statystyka%20%28STAT%29.pdf"
     expected_calls:
       - tool: search_syllabi
         expected_sections:
-          - {course_code: "S1SI1E>STAT", section: "Wymagania wstępne"}
+          - { course_code: "S1SI1E>STAT", section: "Wymagania wstępne" }
 
   - id: en-poza-zakresem-erasmus
     question: "I am an Erasmus student — how do I register for the semester and get my learning agreement signed?"
@@ -664,8 +740,8 @@ powitanie_i_zakres:
 wydzialy:
   - id: wydzial-pelna-nazwa-wiit
     question: "Jak brzmi pełna nazwa wydziału WIiT?"
-    entities: {wydzial: "WIiT"}
-    expected_data: {symbol: "WIiT", name: "Wydział Informatyki i Telekomunikacji"}
+    entities: { wydzial: "WIiT" }
+    expected_data: { symbol: "WIiT", name: "Wydział Informatyki i Telekomunikacji" }
     expected_answer: "Wydział Informatyki i Telekomunikacji."
     notes: "Pokusa: model zna te nazwe z pretreningu i moze odpowiedziec bez wywolania — trafna odpowiedz bez zapytania to wciaz blad trasy."
     source: *informator
@@ -676,7 +752,7 @@ wydzialy:
   - id: wydzial-lista-obslugiwanych
     question: "Dla jakich wydziałów masz dane?"
     expected_data:
-      faculties: [{symbol: "WIiT", name: "Wydział Informatyki i Telekomunikacji"}]
+      faculties: [{ symbol: "WIiT", name: "Wydział Informatyki i Telekomunikacji" }]
     expected_answer: "Tylko dla jednego: WIiT — Wydział Informatyki i Telekomunikacji."
     edge_case: "pytanie o zakres bota zadane wprost o wydzialy — w odróżnieniu od powitanie-kim-jestes tu odpowiedz pochodzi z bazy"
     notes: "Odpowiedz nie moze dopisac innych wydzialow PP, ktore model zna z pretreningu."
@@ -698,37 +774,37 @@ dopytania:
     earlier_questions:
       - "Jaki był próg na Informatykę w 2025 roku?"
     question: "a w 2024?"
-    entities: {kierunek: "Informatyka", rok: 2024}
-    expected_data: {min_points: 805.25, capacity: 210}
+    entities: { kierunek: "Informatyka", rok: 2024 }
+    expected_data: { min_points: 805.25, capacity: 210 }
     expected_answer: "805,25 pkt, limit przyjęć: 210 miejsc."
     source: *progi
     expected_calls:
       - tool: get_admission_threshold
-        args: {major_name: "Informatyka", year: 2025}
+        args: { major_name: "Informatyka", year: 2025 }
       - tool: get_admission_threshold
-        args: {major_name: "Informatyka", year: 2024}
+        args: { major_name: "Informatyka", year: 2024 }
 
   - id: dopytanie-konsultacje-tej-osoby
     earlier_questions:
       - "Kim jest dr hab. inż. Marek Wojciechowski?"
     question: "a kiedy ma konsultacje?"
-    entities: {imie: "Marek", nazwisko: "Wojciechowski"}
-    expected_data: {day_of_week: "wtorek", start_time: "12:30", end_time: "14:00", location: "A1 503"}
+    entities: { imie: "Marek", nazwisko: "Wojciechowski" }
+    expected_data: { day_of_week: "wtorek", start_time: "12:30", end_time: "14:00", location: "A1 503" }
     expected_answer: "Wtorek 12:30–14:00, sala A1 503 (prośba o wcześniejszy kontakt mailowy w celu potwierdzenia terminu; możliwe też spotkanie online)."
     notes: "Agent może wziąć staff_id z tury 1 albo wyszukać osobę ponownie — oba warianty przechodzą, ponowne get_staff liczy się tylko jako extra_calls."
     source: *informator
     expected_calls:
       - tool: get_staff
-        args: {first_name: "Marek", last_name: "Wojciechowski"}
+        args: { first_name: "Marek", last_name: "Wojciechowski" }
       - tool: get_office_hour
-        args: {staff_id: "$prev.id"}
+        args: { staff_id: "$prev.id" }
 
   - id: dopytanie-rozstrzygniecie-niejednoznacznosci
     earlier_questions:
       - "Kiedy konsultacje ma dr Paweł Wojciechowski?"
     question: "Chodzi mi o tego z Zakładu Systemów Informatycznych."
-    entities: {imie: "Paweł", nazwisko: "Wojciechowski", jednostka: "Zakład Systemów Informatycznych"}
-    expected_data: {day_of_week: "środa", start_time: "11:20", end_time: "12:50", location: "A23a 1.6.5"}
+    entities: { imie: "Paweł", nazwisko: "Wojciechowski", jednostka: "Zakład Systemów Informatycznych" }
+    expected_data: { day_of_week: "środa", start_time: "11:20", end_time: "12:50", location: "A23a 1.6.5" }
     expected_answer: "Środa 11:20–12:50, sala A23a 1.6.5 (dostępny też w inne dni po wcześniejszym umówieniu się mailowo)."
     notes: "Tura 1 to konsultacje-edge-niejednoznaczne-imie-i-nazwisko — bot ma dopytać, którą z dwóch osób; tura 2 to rozstrzyga."
     source: *informator
@@ -736,18 +812,18 @@ dopytania:
     #   $prev.id cannot read, so the filtered get_staff is there only to find that id.
     expected_calls:
       - tool: get_staff
-        args: {first_name: "Paweł", last_name: "Wojciechowski"}
+        args: { first_name: "Paweł", last_name: "Wojciechowski" }
       - tool: get_staff
-        args: {first_name: "Paweł", last_name: "Wojciechowski", department: "Zakład Systemów Informatycznych"}
+        args: { first_name: "Paweł", last_name: "Wojciechowski", department: "Zakład Systemów Informatycznych" }
         only_resolves_prev_id: true
       - tool: get_office_hour
-        args: {staff_id: "$prev.id"}
+        args: { staff_id: "$prev.id" }
 
   - id: dopytanie-sylabus-literatura-tego-przedmiotu
     earlier_questions:
       - "Kto koordynuje Podstawy genetyki na Bioinformatyce?"
     question: "a z jakiej książki się uczyć?"
-    entities: {kierunek: "Bioinformatyka", przedmiot: "Podstawy genetyki", sekcja: "Literatura"}
+    entities: { kierunek: "Bioinformatyka", przedmiot: "Podstawy genetyki", sekcja: "Literatura" }
     expected_data:
       literatura_podstawowa: ["Węgleński P. (red.): Genetyka molekularna, PWN, Warszawa 2017"]
     expected_answer: "Literatura podstawowa: P. Węgleński (red.), „Genetyka molekularna”, PWN, Warszawa 2017."
@@ -756,10 +832,10 @@ dopytania:
     expected_calls:
       - tool: search_syllabi
         expected_sections:
-          - {course_code: "S1Bioinf1>GEN", section: "Koordynatorzy i wykładowcy"}
+          - { course_code: "S1Bioinf1>GEN", section: "Koordynatorzy i wykładowcy" }
       - tool: search_syllabi
         expected_sections:
-          - {course_code: "S1Bioinf1>GEN", section: "Literatura"}
+          - { course_code: "S1Bioinf1>GEN", section: "Literatura" }
     alternative_routes:
       - why: "Wyszukiwanie z tury 1 bez filtra sekcji mogło już zwrócić literaturę tego
           przedmiotu; tura 2 może wtedy odpowiedzieć z niego bez nowego wywołania — tak
@@ -767,7 +843,7 @@ dopytania:
         calls:
           - tool: search_syllabi
             expected_sections:
-              - {course_code: "S1Bioinf1>GEN", section: "Literatura"}
+              - { course_code: "S1Bioinf1>GEN", section: "Literatura" }
 
   - id: dopytanie-edge-brak-kontekstu
     question: "a w 2024?"
@@ -799,7 +875,7 @@ dopytania:
 sylabusy:
   - id: sylabus-literatura-statystyka-cyberbezpieczenstwo
     question: "Jaka jest literatura podstawowa do Statystyki na Cyberbezpieczeństwie?"
-    entities: {kierunek: "Cyberbezpieczeństwo", przedmiot: "Statystyka", sekcja: "Literatura"}
+    entities: { kierunek: "Cyberbezpieczeństwo", przedmiot: "Statystyka", sekcja: "Literatura" }
     expected_data:
       literatura_podstawowa:
         - "Krysicki W., Bartos J., Dyczka W., Królikowska K., Wasilewski M.: Rachunek prawdopodobieństwa i statystyka matematyczna w zadaniach, wyd. 8, PWN, Warszawa 2012"
@@ -810,24 +886,38 @@ sylabusy:
     expected_calls:
       - tool: search_syllabi
         expected_sections:
-          - {course_code: "S1Cybez1>STAT", section: "Literatura"}
+          - { course_code: "S1Cybez1>STAT", section: "Literatura" }
 
   - id: sylabus-skala-ocen-optoelektronika
     question: "Ile procent trzeba zdobyć z Optoelektroniki na ocenę 4,0?"
-    entities: {kierunek: "Mikroelektronika i komunikacja cyfrowa", przedmiot: "Optoelektronika", sekcja: "Metody weryfikacji efektów uczenia się i kryteria oceny"}
-    expected_data: {ocena: "4,0", procent_punktow: "70%–79%"}
+    entities:
+      {
+        kierunek: "Mikroelektronika i komunikacja cyfrowa",
+        przedmiot: "Optoelektronika",
+        sekcja: "Metody weryfikacji efektów uczenia się i kryteria oceny",
+      }
+    expected_data: { ocena: "4,0", procent_punktow: "70%–79%" }
     expected_answer: "Co najmniej 70% — w skali ocen z sylabusu przedział 70%–79% daje 4,0."
     notes: "Pełna skala z sylabusu: <50% – 2,0; 50–59% – 3,0; 60–69% – 3,5; 70–79% – 4,0; 80–89% – 4,5; 90–100% – 5,0. Optoelektronika jest tylko na Mikroelektronice i komunikacji cyfrowej, więc pytanie nie podaje kierunku. Błąd: „około 70%” albo przedział sąsiedniej oceny."
     source: "https://put.poznan.pl/cards/2026_2027/Mikroelektronika%20i%20komunikacja%20cyfrowa/stacjonarne/studia%20pierwszego%20stopnia/5/Optoelektronika%20%28OPTO%29.pdf"
     expected_calls:
       - tool: search_syllabi
         expected_sections:
-          - {course_code: "S1MiKC2>OPTO", section: "Metody weryfikacji efektów uczenia się i kryteria oceny"}
+          - { course_code: "S1MiKC2>OPTO", section: "Metody weryfikacji efektów uczenia się i kryteria oceny" }
 
   - id: sylabus-edge-brak-progu-socjologia
     question: "Ile procent punktów trzeba zdobyć, żeby zaliczyć Elementy socjologii i etyki?"
-    entities: {kierunek: "Teleinformatyka", przedmiot: "Elementy socjologii i etyki", sekcja: "Metody weryfikacji efektów uczenia się i kryteria oceny"}
-    expected_data: {prog_procentowy: null, sposob_weryfikacji: "Rozmowy podczas zajęć, praca pisemna na zatwierdzony wcześniej temat."}
+    entities:
+      {
+        kierunek: "Teleinformatyka",
+        przedmiot: "Elementy socjologii i etyki",
+        sekcja: "Metody weryfikacji efektów uczenia się i kryteria oceny",
+      }
+    expected_data:
+      {
+        prog_procentowy: null,
+        sposob_weryfikacji: "Rozmowy podczas zajęć, praca pisemna na zatwierdzony wcześniej temat.",
+      }
     expected_answer: "Sylabus nie podaje progu procentowego — efekty weryfikowane są przez rozmowy podczas zajęć i pracę pisemną na zatwierdzony wcześniej temat. Żadnej liczby procent podawać nie wolno."
     edge_case: "pytanie o liczbę, której źródło nie podaje — kusi 50%, obecne w wielu innych sylabusach"
     notes: "Przedmiot obieralny, tylko na Teleinformatyce (semestr 1)."
@@ -835,24 +925,28 @@ sylabusy:
     expected_calls:
       - tool: search_syllabi
         expected_sections:
-          - {course_code: "S1Teleinf1>ESiE", section: "Metody weryfikacji efektów uczenia się i kryteria oceny"}
+          - { course_code: "S1Teleinf1>ESiE", section: "Metody weryfikacji efektów uczenia się i kryteria oceny" }
 
   - id: sylabus-koordynator-i-prowadzacy-socjologia
     question: "Kto koordynuje Elementy socjologii i etyki, a kto prowadzi zajęcia?"
-    entities: {kierunek: "Teleinformatyka", przedmiot: "Elementy socjologii i etyki", sekcja: "Koordynatorzy i wykładowcy"}
-    expected_data: {koordynator: "dr Radosław Kot", prowadzacy: "dr Michał Weres"}
+    entities:
+      { kierunek: "Teleinformatyka", przedmiot: "Elementy socjologii i etyki", sekcja: "Koordynatorzy i wykładowcy" }
+    expected_data: { koordynator: "dr Radosław Kot", prowadzacy: "dr Michał Weres" }
     expected_answer: "Koordynator: dr Radosław Kot; zajęcia prowadzi (wykładowca): dr Michał Weres."
     edge_case: "koordynator i prowadzący to dwie różne osoby z dwóch kolumn pierwszej strony sylabusu — zamiana ról = błąd"
     source: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia%20pierwszego%20stopnia/1/przedmioty%20obieralne/Elementy%20socjologii%20i%20etyki%20%28ESiE%29.pdf"
     expected_calls:
       - tool: search_syllabi
         expected_sections:
-          - {course_code: "S1Teleinf1>ESiE", section: "Koordynatorzy i wykładowcy"}
+          - { course_code: "S1Teleinf1>ESiE", section: "Koordynatorzy i wykładowcy" }
 
   - id: sylabus-wymagania-wf-plywanie
     question: "Czy na WF trzeba umieć pływać?"
-    entities: {przedmiot: "Nauka pływania", sekcja: "Wymagania wstępne"}
-    expected_data: {nauka_plywania_wymagania_wstepne: "Brak przeciwskazań zdrowotnych do wykonywania ćwiczeń fizycznych i pływania."}
+    entities: { przedmiot: "Nauka pływania", sekcja: "Wymagania wstępne" }
+    expected_data:
+      {
+        nauka_plywania_wymagania_wstepne: "Brak przeciwskazań zdrowotnych do wykonywania ćwiczeń fizycznych i pływania.",
+      }
     expected_answer: "Nie trzeba — wśród zajęć sportowych do wyboru jest „Nauka pływania”, która wymaga tylko braku przeciwwskazań zdrowotnych do ćwiczeń fizycznych i pływania."
     edge_case: "„WF” to grupa przedmiotów obieralnych, nie jeden sylabus — pierwszy pasujący fragment (ogólny sylabus „Wychowanie fizyczne”: w przypadku pływania wymagane są podstawowe umiejętności) prowadzi do mylącego „tak”"
     notes: >
@@ -873,11 +967,11 @@ sylabusy:
     expected_calls:
       - tool: search_syllabi
         expected_sections:
-          - {course_code: "C_CS>NP30", section: "Wymagania wstępne"}
+          - { course_code: "C_CS>NP30", section: "Wymagania wstępne" }
 
   - id: sylabus-edge-nieistniejacy-przedmiot
     question: "Jaka jest literatura do Kryptografii kwantowej na Cyberbezpieczeństwie?"
-    entities: {kierunek: "Cyberbezpieczeństwo", przedmiot: "Kryptografia kwantowa", sekcja: "Literatura"}
+    entities: { kierunek: "Cyberbezpieczeństwo", przedmiot: "Kryptografia kwantowa", sekcja: "Literatura" }
     expected_data: null
     expected_answer: "Nie wiem — przedmiotu „Kryptografia kwantowa” nie ma w planie studiów Cyberbezpieczeństwa. Nie wolno podać literatury innego przedmiotu jako odpowiedzi."
     edge_case: "nieistniejący przedmiot o nazwie bliskiej istniejącemu („Wprowadzenie do obliczeń kwantowych”) — bot nie może podstawić innego przedmiotu"
@@ -887,14 +981,19 @@ sylabusy:
     #   without a stored syllabus ("doesn't exist" is not "exists but has no data").
     expected_calls:
       - tool: get_course
-        args: {major_name: "Cyberbezpieczeństwo", course_name: "Kryptografia kwantowa"}
+        args: { major_name: "Cyberbezpieczeństwo", course_name: "Kryptografia kwantowa" }
 
   - id: sylabus-edge-ta-sama-nazwa-dwa-kierunki
     question: "Kto koordynuje Statystykę?"
-    entities: {przedmiot: "Statystyka", kierunki: ["Cyberbezpieczeństwo", "Sztuczna inteligencja"], sekcja: "Koordynatorzy i wykładowcy"}
+    entities:
+      {
+        przedmiot: "Statystyka",
+        kierunki: ["Cyberbezpieczeństwo", "Sztuczna inteligencja"],
+        sekcja: "Koordynatorzy i wykładowcy",
+      }
     expected_data:
-      "Cyberbezpieczeństwo": {koordynator: "dr Mateusz John"}
-      "Sztuczna inteligencja": {koordynator: "prof. dr hab. inż. Katarzyna Filipiak"}
+      "Cyberbezpieczeństwo": { koordynator: "dr Mateusz John" }
+      "Sztuczna inteligencja": { koordynator: "prof. dr hab. inż. Katarzyna Filipiak" }
     expected_answer: null
     expected_behavior: >
       Statystyka jest na dwóch kierunkach, z różnymi koordynatorami. Poprawnie:
@@ -912,5 +1011,5 @@ sylabusy:
     expected_calls:
       - tool: search_syllabi
         expected_sections:
-          - {course_code: "S1Cybez1>STAT", section: "Koordynatorzy i wykładowcy"}
-          - {course_code: "S1SI1E>STAT", section: "Koordynatorzy i wykładowcy"}
+          - { course_code: "S1Cybez1>STAT", section: "Koordynatorzy i wykładowcy" }
+          - { course_code: "S1SI1E>STAT", section: "Koordynatorzy i wykładowcy" }

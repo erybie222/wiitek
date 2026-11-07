@@ -13,18 +13,17 @@ _ROOT = Path(__file__).resolve().parent
 # (``from config import ...``), so src/ has to be on the import path.
 sys.path.insert(0, str(_ROOT / "src"))
 
-from agent import ask, build_agent  # noqa: E402
-from config import AgentSettings  # noqa: E402
-from database.connection import close_pool  # noqa: E402
+from agent import ask, build_agent
+from config import AgentSettings
+from database.connection import close_pool
 
 
 def main() -> None:
     """Read questions from the terminal and print the agent's answers until the user quits.
 
-    The whole session is one conversation: the agent remembers earlier
-    questions and answers, so a follow-up like "a w 2024?" is understood.
-    Restarting the program starts a new conversation.
-    Quit with ``exit``, ``quit``, ``koniec`` or Ctrl+C.
+    The whole session is one conversation: the agent remembers earlier questions and answers, so a follow-up like "a w
+    2024?" is understood. Restarting the program starts a new conversation. Quit with ``exit``, ``quit``, ``koniec`` or
+    Ctrl+C.
     """
     agent = build_agent(AgentSettings())
     thread_id = str(uuid.uuid4())

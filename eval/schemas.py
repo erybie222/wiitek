@@ -8,10 +8,11 @@ Two groups:
   saved for every benchmark case in the JSON report.
 """
 
+from __future__ import annotations
+
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
-
 
 # --------------------------------------------------------------------------
 # Judge output schemas
@@ -22,6 +23,7 @@ from pydantic import BaseModel, Field
 # Field order matters too: the model fills fields in order, so putting the
 # evidence (claims / facts) before the score makes it decide the score after
 # the analysis instead of justifying a score it already picked.
+
 
 class Claim(BaseModel):
     """One factual assertion pulled out of the answer."""
@@ -65,6 +67,7 @@ class Correctness(BaseModel):
 # One CaseRecord per benchmark case is saved in the JSON report. The Field
 # descriptions below document what each value in the report means.
 
+
 class ToolCall(BaseModel):
     """One tool call with what it returned — made by the agent, or an expected call run by us."""
 
@@ -103,9 +106,7 @@ class ToolScores(BaseModel):
             "(out of scope, greetings); None on every other case."
         )
     )
-    extra_calls: int = Field(
-        description="How many more calls the agent made than the case needs; at least 0."
-    )
+    extra_calls: int = Field(description="How many more calls the agent made than the case needs; at least 0.")
     expected_tools: list[str] = Field(
         description=(
             "Tools the case needs, from expected_calls — without the ones marked "
@@ -130,8 +131,8 @@ class ToolScores(BaseModel):
     scored_against_route: str = Field(
         default="expected_calls",
         description=(
-            "Which route these scores compare the agent with: \"expected_calls\", or "
-            "\"alternative_routes[N]\" when the agent did not follow expected_calls but "
+            'Which route these scores compare the agent with: "expected_calls", or '
+            '"alternative_routes[N]" when the agent did not follow expected_calls but '
             "followed that alternative. A case that followed no route is scored against "
             "expected_calls."
         ),

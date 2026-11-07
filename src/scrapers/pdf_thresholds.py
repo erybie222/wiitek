@@ -12,15 +12,17 @@ that stops the step instead of storing numbers under a guessed year.
 Majors are matched to the database by name, so they must be ingested first.
 """
 
+from __future__ import annotations
+
 import re
 from pathlib import Path
 from typing import Callable
 
 import pdfplumber
 from psycopg import Cursor as DBCursor
-from database.queries.majors import get_major_id
-from database.queries.admission_thresholds import upsert_threshold
 
+from database.queries.admission_thresholds import upsert_threshold
+from database.queries.majors import get_major_id
 
 # "2025/2026" in a header cell -> recruitment year 2025.
 HEADER_YEAR = re.compile(r"(\d{4})/\d{4}")
@@ -34,8 +36,7 @@ def find_thresholds_pdf(pattern: str) -> str:
     """Find the one thresholds PDF matching a glob pattern.
 
     Args:
-        pattern: Glob pattern relative to the working directory, e.g.
-            ``"data/progi punktowe *.pdf"``.
+        pattern: Glob pattern relative to the working directory, e.g. ``"data/progi punktowe *.pdf"``.
 
     Returns:
         str: Path of the file, with forward slashes (it is cited as the source).
@@ -54,17 +55,15 @@ def read_year_columns(header: list[str | None]) -> dict[int, tuple[int, int]]:
     """Work out which columns hold each year's capacity and minimum points.
 
     Args:
-        header: The table's first row; column 0 is the major name, every
-            other cell names a year and either "limit przyjęć" (capacity)
-            or "min liczba pkt." (minimum points).
+        header: The table's first row; column 0 is the major name, every other cell names a year and either "limit
+            przyjęć" (capacity) or "min liczba pkt." (minimum points).
 
     Returns:
         dict[int, tuple[int, int]]: Recruitment year -> (capacity column,
         min-points column), newest year first, e.g. ``{2025: (1, 2), ...}``.
 
     Raises:
-        ThresholdsPdfError: A cell names no year or no column kind, or a
-            year lacks one of its two columns.
+        ThresholdsPdfError: A cell names no year or no column kind, or a year lacks one of its two columns.
     """
     capacity_columns: dict[int, int] = {}
     points_columns: dict[int, int] = {}
@@ -86,8 +85,7 @@ def read_year_columns(header: list[str | None]) -> dict[int, tuple[int, int]]:
 
     if not capacity_columns or capacity_columns.keys() != points_columns.keys():
         raise ThresholdsPdfError(f"Header does not pair capacity and points per year: {header}")
-    return {year: (capacity_columns[year], points_columns[year])
-            for year in sorted(capacity_columns, reverse=True)}
+    return {year: (capacity_columns[year], points_columns[year]) for year in sorted(capacity_columns, reverse=True)}
 
 
 def parse_polish_number(value: str | None, output_type: Callable[[str], int | float]) -> int | float | None:
@@ -100,10 +98,10 @@ def parse_polish_number(value: str | None, output_type: Callable[[str], int | fl
     Returns:
         int | float | None: The number, or None if the cell is empty or "-".
     """
-    if not value or value.strip() in ('', '-'):
+    if not value or value.strip() in ("", "-"):
         return None
 
-    clean_value = value.replace(',', '.').strip()
+    clean_value = value.replace(",", ".").strip()
     return output_type(clean_value)
 
 
@@ -117,10 +115,10 @@ def ingest_thresholds_pdf(cursor: DBCursor, file_path: str) -> None:
         file_path: Path to the thresholds PDF.
 
     Raises:
-        ThresholdsPdfError: The PDF has no table, its header is not laid out
-            as expected, or a number cell cannot be read.
+        ThresholdsPdfError: The PDF has no table, its header is not laid out as expected, or a number cell cannot be
+            read.
     """
-    print(f"Starting PDF extraction process...")
+    print("Starting PDF extraction process...")
 
     print(f"Opening file: {file_path}")
     with pdfplumber.open(file_path) as pdf:
@@ -135,13 +133,13 @@ def ingest_thresholds_pdf(cursor: DBCursor, file_path: str) -> None:
         # An English-taught major is listed as "polska nazwa/English Name",
         # often next to a Polish-taught row with the same Polish name; the two
         # are different majors, told apart by the English name.
-        polish_part, _, english_part = row[0].partition('/')
+        polish_part, _, english_part = row[0].partition("/")
         clean_name = polish_part.strip()
         english_name = english_part.strip() or None
 
         label = f"{clean_name.capitalize()}{f' / {english_name}' if english_name else ''}"
         print(f"\nProcessing: {label}")
-        major_id = get_major_id(cursor, clean_name, 'bachelor-of-engineering', 'full-time', english_name)
+        major_id = get_major_id(cursor, clean_name, "bachelor-of-engineering", "full-time", english_name)
 
         if not major_id:
             print(f"  -> Error: Could not resolve ID for {label}")
@@ -164,7 +162,7 @@ def ingest_thresholds_pdf(cursor: DBCursor, file_path: str) -> None:
                 year=year,
                 points=points,
                 capacity=capacity,
-                source_url=f"PDF: {file_path}"
+                source_url=f"PDF: {file_path}",
             )
 
             print(f"  -> Year {year}: Min Points = {points}, Capacity = {capacity}")

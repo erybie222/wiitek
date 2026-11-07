@@ -4,6 +4,8 @@ The faculty itself is not a row here — it is in ``faculties``. Units form a
 tree through ``parent``; units directly under the faculty have no parent.
 """
 
+from __future__ import annotations
+
 from psycopg import Cursor as DBCursor
 
 from database.serialization import row_to_dict
@@ -23,16 +25,15 @@ def upsert_department(
 ) -> None:
     """Insert a unit, or update it if a unit with this name is already stored.
 
-    Units are identified by their Polish name. If the university renames a
-    unit, the next ingestion adds it as a new row and the old one remains.
+    Units are identified by their Polish name. If the university renames a unit, the next ingestion adds it as a new row
+    and the old one remains.
 
     Args:
         cursor: Database cursor to run the SQL on.
         name: Polish unit name; identifies the unit.
-        symbol: Short symbol from Informator. Not unique: a zakład often has
-            the same symbol as its institute.
-        parent: Name of the unit this one belongs to; None if it sits
-            directly under the faculty. The parent must already be stored.
+        symbol: Short symbol from Informator. Not unique: a zakład often has the same symbol as its institute.
+        parent: Name of the unit this one belongs to; None if it sits directly under the faculty. The parent must
+            already be stored.
         unit_type: Kind of unit, e.g. "instytut", "zakład".
         faculty: Faculty symbol, e.g. "WIiT".
         address: Postal address, or None.
@@ -40,7 +41,8 @@ def upsert_department(
         email: Office e-mail, or None.
         source_url: Link to the unit's page in Informator.
     """
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO departments (name, symbol, parent, unit_type, faculty, address, phone, email, source_url)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (name)
@@ -54,7 +56,9 @@ def upsert_department(
             email = EXCLUDED.email,
             source_url = EXCLUDED.source_url,
             last_updated = CURRENT_TIMESTAMP;
-    """, (name, symbol, parent, unit_type, faculty, address, phone, email, source_url))
+    """,
+        (name, symbol, parent, unit_type, faculty, address, phone, email, source_url),
+    )
 
 
 def get_department(cursor: DBCursor, name: str) -> dict | None:
@@ -75,25 +79,41 @@ def get_department(cursor: DBCursor, name: str) -> dict | None:
         Note the difference: None means the unit does not exist, while
         ``children == []`` means it exists but has no sub-units.
     """
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT name, symbol, parent, unit_type, faculty, address, phone, email,
                source_url, last_updated
         FROM departments
         WHERE LOWER(unaccent(name)) = LOWER(unaccent(%s::text));
-    """, (name,))
+    """,
+        (name,),
+    )
 
     row = cursor.fetchone()
     if row is None:
         return None
 
-    columns = ("name", "symbol", "parent", "unit_type", "faculty", "address",
-               "phone", "email", "source_url", "last_updated")
+    columns = (
+        "name",
+        "symbol",
+        "parent",
+        "unit_type",
+        "faculty",
+        "address",
+        "phone",
+        "email",
+        "source_url",
+        "last_updated",
+    )
     department = row_to_dict(columns, row)
 
     # Direct sub-units only (one level down), not the whole subtree.
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT name FROM departments WHERE LOWER(parent) = LOWER(%s) ORDER BY name;
-    """, (department["name"],))
+    """,
+        (department["name"],),
+    )
     department["children"] = [child[0] for child in cursor.fetchall()]
 
     return department
@@ -102,11 +122,10 @@ def get_department(cursor: DBCursor, name: str) -> dict | None:
 def delete_departments_not_seen_in_run(cursor: DBCursor) -> int:
     """Delete the units the current ingestion run has not written, e.g. renamed or closed ones.
 
-    A row written in this run has ``last_updated`` equal to
-    ``CURRENT_TIMESTAMP``, which Postgres fixes at the start of the
-    transaction, so this only works while the whole run is one transaction.
-    Call it after ``delete_staff_not_seen_in_run``: staff who left may still
-    point at a removed unit (``staff.department`` is a foreign key).
+    A row written in this run has ``last_updated`` equal to ``CURRENT_TIMESTAMP``, which Postgres fixes at the start of
+    the transaction, so this only works while the whole run is one transaction. Call it after
+    ``delete_staff_not_seen_in_run``: staff who left may still point at a removed unit (``staff.department`` is a
+    foreign key).
 
     Args:
         cursor: Database cursor of the ingestion run.

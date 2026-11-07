@@ -38,16 +38,19 @@ Run it from the repository root: ``eval`` is a package, so it is started
 with ``-m`` rather than as a file path.
 """
 
+from __future__ import annotations
+
 import argparse
 
-# Must come before the app imports below: it puts src/ on the import path.
+# The application (src/)
 from ._src_path import ROOT
 
-# The application (src/)
+# isort: split
 from agent import ask, build_agent, build_judge_model
 from config import AgentSettings, JudgeSettings
 from database.connection import close_pool
 
+# Must come before the app imports below: it puts src/ on the import path.
 # This package
 from .answer_judges import judge_correctness, judge_faithfulness
 from .benchmark_loader import case_kind, load_cases, reference_text
@@ -62,8 +65,8 @@ RESULTS_DIR = ROOT / "eval" / "results"
 def run(cases: list[dict], use_judge: bool, verbose: bool) -> list[CaseRecord]:
     """Ask the agent every case's question, score the result, and print one line per case.
 
-    The line shows the layer-1 result and, with judges, both judge scores;
-    below it come details worth reading (unsupported claims, wrong data).
+    The line shows the layer-1 result and, with judges, both judge scores; below it come details worth reading
+    (unsupported claims, wrong data).
 
     Args:
         cases: Benchmark cases to run.
@@ -71,8 +74,8 @@ def run(cases: list[dict], use_judge: bool, verbose: bool) -> list[CaseRecord]:
         verbose: Also print each case's tools and full answer.
 
     Returns:
-        list[CaseRecord]: One per case, in run order. If asking the agent
-        raised an exception, the record has ``error`` set and no answer or
+        list[CaseRecord]: One per case, in run order. If asking the agent raised an exception, the record has ``error``
+            set and no answer or
         scores. What each field means is described on the ``CaseRecord`` model.
     """
     agent = build_agent(AgentSettings())
@@ -103,16 +106,19 @@ def run(cases: list[dict], use_judge: bool, verbose: bool) -> list[CaseRecord]:
             tool_calls += agent_tool_calls(messages)
         except Exception as error:
             print(f"ERROR: {error}")
-            records.append(CaseRecord(
-                id=case["id"], category=case["category"], kind=kind,
-                question=case["question"], error=str(error),
-            ))
+            records.append(
+                CaseRecord(
+                    id=case["id"],
+                    category=case["category"],
+                    kind=kind,
+                    question=case["question"],
+                    error=str(error),
+                )
+            )
             continue
 
         tool_scores = score_tool_calls_with_alternatives(case, tool_calls)
-        faithfulness = (
-            judge_faithfulness(faith_judge, case, answer, tool_calls, earlier_turns) if faith_judge else None
-        )
+        faithfulness = judge_faithfulness(faith_judge, case, answer, tool_calls, earlier_turns) if faith_judge else None
         correctness = judge_correctness(correct_judge, case, answer, earlier_turns) if correct_judge else None
 
         marks = ["tools OK" if tool_scores.called_right_tools else "tools FAIL"]
@@ -139,20 +145,22 @@ def run(cases: list[dict], use_judge: bool, verbose: bool) -> list[CaseRecord]:
             print(f"      tools: {tool_scores.called_tools}")
             print(f"      answer: {answer}\n")
 
-        records.append(CaseRecord(
-            id=case["id"],
-            category=case["category"],
-            kind=kind,
-            earlier_turns=earlier_turns,
-            question=case["question"],
-            reference=reference_text(case),
-            expected_data=case.get("expected_data"),
-            answer=answer,
-            tool_calls=tool_calls,
-            tool_scores=tool_scores,
-            faithfulness=faithfulness,
-            correctness=correctness,
-        ))
+        records.append(
+            CaseRecord(
+                id=case["id"],
+                category=case["category"],
+                kind=kind,
+                earlier_turns=earlier_turns,
+                question=case["question"],
+                reference=reference_text(case),
+                expected_data=case.get("expected_data"),
+                answer=answer,
+                tool_calls=tool_calls,
+                tool_scores=tool_scores,
+                faithfulness=faithfulness,
+                correctness=correctness,
+            )
+        )
 
     return records
 
@@ -160,17 +168,15 @@ def run(cases: list[dict], use_judge: bool, verbose: bool) -> list[CaseRecord]:
 def main() -> None:
     """Run the benchmark from the command line.
 
-    Parses the filters, runs the selected cases, prints the summary and
-    writes the full report to ``eval/results/`` (named by ``write_report``).
+    Parses the filters, runs the selected cases, prints the summary and writes the full report to ``eval/results/``
+    (named by ``write_report``).
     """
     parser = argparse.ArgumentParser(prog="python -m eval.run_eval", description="Run the WIiTek benchmark.")
     parser.add_argument("--category", help="Run only one benchmark category.")
     parser.add_argument("--only", help="Run only the case with this id.")
     parser.add_argument("--limit", type=int, help="Run at most N cases.")
-    parser.add_argument("--no-judge", action="store_true",
-                        help="Layer 1 only; skip the LLM judges.")
-    parser.add_argument("--verbose", action="store_true",
-                        help="Print every answer in full.")
+    parser.add_argument("--no-judge", action="store_true", help="Layer 1 only; skip the LLM judges.")
+    parser.add_argument("--verbose", action="store_true", help="Print every answer in full.")
     args = parser.parse_args()
 
     cases = load_cases(BENCHMARK_PATH)
@@ -200,8 +206,7 @@ def main() -> None:
     totals = aggregate(records)
     summarize(records, totals)
 
-    run_options = {"category": args.category, "only": args.only, "limit": args.limit,
-                   "judges": not args.no_judge}
+    run_options = {"category": args.category, "only": args.only, "limit": args.limit, "judges": not args.no_judge}
     report_path = write_report(records, totals, RESULTS_DIR, run_options)
     print(f"\nReport: {report_path.relative_to(ROOT)}")
 
