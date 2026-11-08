@@ -47,7 +47,7 @@
 #     agent rightly does not make such a call (it already has the id from an
 #     earlier turn), add it anyway with `only_resolves_prev_id: true`: it is
 #     run to find the id, but not required from the agent.
-#   - A syllabus search (search_syllabi) is not run: its ranking depends on
+#   - A syllabus search (search_course_cards) is not run: its ranking depends on
 #     how the query is worded, so any query written here would be a guess.
 #     Instead of `args` it lists `expected_sections` — the syllabus sections
 #     a correct answer can come from, each {course_code, section}. It counts
@@ -694,7 +694,7 @@ pytania_po_angielsku:
     notes: "W bazie przedmiot nazywa się tylko „Statystyka” — angielskiej nazwy przedmiotu nie ma, a sylabusy są tylko po polsku (decyzja fazy 5). Mierzy, czy pytanie po angielsku trafia w polski tekst. Statystyka jest też na Cyberbezpieczeństwie, z innymi wymaganiami wstępnymi."
     source: "https://put.poznan.pl/cards/2026_2027/Sztuczna%20inteligencja_Artificial%20Intelligence/stacjonarne/studia%20pierwszego%20stopnia/3/Statystyka%20%28STAT%29.pdf"
     expected_calls:
-      - tool: search_syllabi
+      - tool: search_course_cards
         expected_sections:
           - { course_code: "S1SI1E>STAT", section: "Wymagania wstępne" }
 
@@ -830,10 +830,10 @@ dopytania:
     notes: "Tura 1: koordynatorka dr hab. inż. Agnieszka Rybarczyk. Literatura uzupełniająca (Winter i in., „Genetyka – krótkie wykłady”, PWN 2012) nie jest wymagana, ale jej podanie nie jest błędem."
     source: "https://put.poznan.pl/cards/2026_2027/Bioinformatyka/stacjonarne/studia%20pierwszego%20stopnia/1/Podstawy%20genetyki%20%28GEN%29.pdf"
     expected_calls:
-      - tool: search_syllabi
+      - tool: search_course_cards
         expected_sections:
           - { course_code: "S1Bioinf1>GEN", section: "Koordynatorzy i wykładowcy" }
-      - tool: search_syllabi
+      - tool: search_course_cards
         expected_sections:
           - { course_code: "S1Bioinf1>GEN", section: "Literatura" }
     alternative_routes:
@@ -841,7 +841,7 @@ dopytania:
           przedmiotu; tura 2 może wtedy odpowiedzieć z niego bez nowego wywołania — tak
           jak dopytanie-konsultacje-tej-osoby bierze staff_id z tury 1."
         calls:
-          - tool: search_syllabi
+          - tool: search_course_cards
             expected_sections:
               - { course_code: "S1Bioinf1>GEN", section: "Literatura" }
 
@@ -860,10 +860,10 @@ dopytania:
     expected_calls: []
 
 # ---------------------------------------------------------------------------
-# Category 11 — sylabusy (course syllabi)
+# Category 11 — sylabusy (course cards)
 #
 # What a course is about, how it is passed, its literature and who runs it —
-# answered from the course syllabus PDFs (search_syllabi), not from the ECTS
+# answered from the course syllabus PDFs (search_course_cards), not from the ECTS
 # catalog: ECTS, hours and whether there is an exam still come from
 # get_course. Each case's `source` is the syllabus PDF its values were checked
 # in. Sections are named as the PDF's headings, except the first page's two
@@ -884,7 +884,7 @@ sylabusy:
     notes: "Literatura uzupełniająca (Devore; Ross) nie jest wymagana, ale jej podanie nie jest błędem. Sylabus Statystyki na Sztucznej inteligencji ma tę samą literaturę, więc pomylenie kierunków nie zmieni tu odpowiedzi — kierunki rozróżnia sylabus-edge-ta-sama-nazwa-dwa-kierunki."
     source: "https://put.poznan.pl/cards/2026_2027/Cyberbezpiecze%C5%84stwo/stacjonarne/studia%20pierwszego%20stopnia/3/Statystyka%20%28STAT%29.pdf"
     expected_calls:
-      - tool: search_syllabi
+      - tool: search_course_cards
         expected_sections:
           - { course_code: "S1Cybez1>STAT", section: "Literatura" }
 
@@ -901,7 +901,7 @@ sylabusy:
     notes: "Pełna skala z sylabusu: <50% – 2,0; 50–59% – 3,0; 60–69% – 3,5; 70–79% – 4,0; 80–89% – 4,5; 90–100% – 5,0. Optoelektronika jest tylko na Mikroelektronice i komunikacji cyfrowej, więc pytanie nie podaje kierunku. Błąd: „około 70%” albo przedział sąsiedniej oceny."
     source: "https://put.poznan.pl/cards/2026_2027/Mikroelektronika%20i%20komunikacja%20cyfrowa/stacjonarne/studia%20pierwszego%20stopnia/5/Optoelektronika%20%28OPTO%29.pdf"
     expected_calls:
-      - tool: search_syllabi
+      - tool: search_course_cards
         expected_sections:
           - { course_code: "S1MiKC2>OPTO", section: "Metody weryfikacji efektów uczenia się i kryteria oceny" }
 
@@ -923,7 +923,7 @@ sylabusy:
     notes: "Przedmiot obieralny, tylko na Teleinformatyce (semestr 1)."
     source: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia%20pierwszego%20stopnia/1/przedmioty%20obieralne/Elementy%20socjologii%20i%20etyki%20%28ESiE%29.pdf"
     expected_calls:
-      - tool: search_syllabi
+      - tool: search_course_cards
         expected_sections:
           - { course_code: "S1Teleinf1>ESiE", section: "Metody weryfikacji efektów uczenia się i kryteria oceny" }
 
@@ -936,7 +936,7 @@ sylabusy:
     edge_case: "koordynator i prowadzący to dwie różne osoby z dwóch kolumn pierwszej strony sylabusu — zamiana ról = błąd"
     source: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia%20pierwszego%20stopnia/1/przedmioty%20obieralne/Elementy%20socjologii%20i%20etyki%20%28ESiE%29.pdf"
     expected_calls:
-      - tool: search_syllabi
+      - tool: search_course_cards
         expected_sections:
           - { course_code: "S1Teleinf1>ESiE", section: "Koordynatorzy i wykładowcy" }
 
@@ -965,7 +965,7 @@ sylabusy:
       - "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia/2/przedmioty%20obieralne/Nauka%20p%C5%82ywania%20%28NP30%29.pdf"
       - "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia/2/przedmioty%20obieralne/P%C5%82ywanie%20%28P%C5%82y30%29.pdf"
     expected_calls:
-      - tool: search_syllabi
+      - tool: search_course_cards
         expected_sections:
           - { course_code: "C_CS>NP30", section: "Wymagania wstępne" }
 
@@ -1009,7 +1009,7 @@ sylabusy:
     #   course is on two majors. One section is enough for layer 1; whether the answer names both
     #   people or asks which major is meant, the correctness judge scores.
     expected_calls:
-      - tool: search_syllabi
+      - tool: search_course_cards
         expected_sections:
           - { course_code: "S1Cybez1>STAT", section: "Koordynatorzy i wykładowcy" }
           - { course_code: "S1SI1E>STAT", section: "Koordynatorzy i wykładowcy" }

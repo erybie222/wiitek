@@ -108,3 +108,28 @@ CREATE TABLE IF NOT EXISTS office_hours (
     last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uk_office_hours UNIQUE (staff_id, day_of_week, start_time)
 );
+
+-- Course card text: one row per section of one course's card PDF.
+-- Belongs to a course row (a PE syllabus listed on twelve majors is stored
+-- twelve times), and goes when the course leaves the catalog: ingestion
+-- updates courses in place, so the cascade fires only for a removed course.
+CREATE TABLE IF NOT EXISTS course_card_sections (
+    id SERIAL CONSTRAINT pk_course_card_sections PRIMARY KEY,
+    course_code VARCHAR(50) NOT NULL,
+    major_id INT NOT NULL,
+    semester INT NOT NULL,
+    -- The PDF this text was read from. Usually the course's current
+    -- source_url; an older one when the course's new PDF could not be read,
+    -- so a citation always names the file the text really comes from.
+    source_url TEXT NOT NULL,
+    -- The section heading as printed in the PDF, e.g. "Literatura"; the
+    -- first page's two columns are stored together as "Koordynatorzy i wykładowcy".
+    section VARCHAR(100) NOT NULL,
+    -- Position of the piece within its section; 0 while sections are not split.
+    chunk_index INT NOT NULL DEFAULT 0,
+    content TEXT NOT NULL,
+    last_updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_course_card_section_course FOREIGN KEY (course_code, major_id, semester)
+        REFERENCES courses (course_code, major_id, semester) ON DELETE CASCADE,
+    CONSTRAINT uk_course_card_sections UNIQUE (course_code, major_id, semester, section, chunk_index)
+);

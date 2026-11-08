@@ -5,13 +5,16 @@ Steps, in order (later steps depend on earlier ones):
 1. the WIiT faculty row;
 2. every major, and the courses from its ECTS catalog page;
 3. admission thresholds from the PDF — matched to the majors from step 2 by name;
-4. faculty units, staff, their functions and office hours from Informator.
+4. faculty units, staff, their functions and office hours from Informator;
+5. the sections of every course's card PDF — read from the links stored in
+   step 2, downloaded once into ``data/course_cards/`` and parsed from there.
 
 Everything runs in one transaction that is committed at the end, so a crash
 leaves the database as it was. Two steps are exceptions, reported and skipped
 instead of undoing the rest: step 3 when the PDF is missing or not laid out as
 expected, and step 4, which needs a browser cookie that often expires (staff
-saved before the failure are kept).
+saved before the failure are kept). Step 5 skips, one by one, the course cards it
+cannot download or read, keeping their stored sections.
 
 Do not commit partway through: step 2 deletes courses and step 4 staff and
 units that this run did not write, and both recognise them by a
@@ -26,6 +29,7 @@ from database.queries.faculties import insert_wiit_faculty
 from database.queries.majors import upsert_major
 from scrapers.html_ects import ingest_ects_catalog
 from scrapers.informator_staff_office_hours import ingest_informator
+from scrapers.pdf_course_cards import ingest_course_cards
 from scrapers.pdf_thresholds import (
     ThresholdsPdfError,
     find_thresholds_pdf,
@@ -141,6 +145,11 @@ def main() -> None:
                 ingest_informator(cursor)
             except RuntimeError as error:
                 print(f"Informator staff scraping aborted: {error}")
+
+            # Last, because the first run downloads every course card (over
+            # an hour) and the Informator cookie could expire meanwhile. Needs
+            # the courses from step 2: it reads their syllabus links.
+            ingest_course_cards(cursor)
     finally:
         close_pool()
 

@@ -123,9 +123,10 @@ class ToolScores(BaseModel):
     )
     expected_calls_error: str | None = Field(
         description=(
-            "Why the expected calls could not be run — a benchmark or database problem, "
-            "not the agent's. Prefixed with alternative_routes[N] when it was an "
-            "alternative's calls that failed. None when they ran fine."
+            "Why the expected calls could not be run, or which expected course card sections "
+            "are not in the database at all — a benchmark or database problem, not the "
+            "agent's. Prefixed with alternative_routes[N] when it was an alternative's "
+            "calls that failed. None when they ran fine."
         )
     )
     scored_against_route: str = Field(

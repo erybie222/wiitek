@@ -194,6 +194,29 @@ def get_course(
     return [row_to_dict(columns, row) for row in cursor.fetchall()]
 
 
+def get_courses_with_card_links(cursor: DBCursor) -> list[dict]:
+    """List every stored course that links to a syllabus PDF.
+
+    Args:
+        cursor: Database cursor to run the SQL on.
+
+    Returns:
+        list[dict]: One dict per course row, ordered by link; courses without a link are left out. Each dict:
+            ``course_code`` (str) — catalog code, e.g. "S1Inf1>ALIN". ``major_id`` (int) — id of the major whose catalog
+            lists it. ``semester`` (int) — semester it is listed in. ``source_url`` (str) — link to its syllabus
+            PDF, e.g.
+        "https: //put.poznan.pl/cards/2026_2027/Informatyka/.../Algebra liniowa (ALIN).pdf".
+    """
+    cursor.execute("""
+        SELECT course_code, major_id, semester, source_url
+        FROM courses
+        WHERE source_url IS NOT NULL
+        ORDER BY source_url, course_code, major_id, semester;
+    """)
+    columns = ("course_code", "major_id", "semester", "source_url")
+    return [row_to_dict(columns, row) for row in cursor.fetchall()]
+
+
 def delete_courses(cursor: DBCursor) -> None:
     """Delete every course (used by ``clean_db.py``).
 

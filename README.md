@@ -14,14 +14,17 @@ answer, the bot says it does not know. Hallucinations are a common problem with 
 
 The project has two halves.
 
-**Ingestion (offline).** Scrapers collect data from three official sources and store it in
+**Ingestion (offline).** Scrapers collect data from four official sources and store it in
 PostgreSQL:
 
-| Source                                           | What it provides                                             | Scraper                                         |
-| ------------------------------------------------ | ------------------------------------------------------------ | ----------------------------------------------- |
-| ECTS course catalogs on put.poznan.pl            | courses per major and semester, ECTS, hours, exam or not     | `src/scrapers/html_ects.py`                     |
-| Admission thresholds PDF                         | minimum points and number of places per major and year       | `src/scrapers/pdf_thresholds.py`                |
-| Informator PP (the university's staff directory) | faculty units, staff, administrative functions, office hours | `src/scrapers/informator_staff_office_hours.py` |
+| Source                                           | What it provides                                                                | Scraper                                         |
+| ------------------------------------------------ | ------------------------------------------------------------------------------- | ----------------------------------------------- |
+| ECTS course catalogs on put.poznan.pl            | courses per major and semester, ECTS, hours, exam or not                        | `src/scrapers/html_ects.py`                     |
+| Admission thresholds PDF                         | minimum points and number of places per major and year                          | `src/scrapers/pdf_thresholds.py`                |
+| Informator PP (the university's staff directory) | faculty units, staff, administrative functions, office hours                    | `src/scrapers/informator_staff_office_hours.py` |
+| Course cards (PDFs linked from the catalogs)     | each course's prerequisites, topics, how it is passed, literature, coordinators | `src/scrapers/pdf_course_cards.py`              |
+
+The course cards are stored but not used by the bot yet: searching them is the next step.
 
 **Answering (online).** An LLM agent (LangChain + OpenAI) receives the question and answers it
 by calling read-only database tools — one tool per table (`src/database/repository.py`). It does
@@ -51,7 +54,8 @@ Python 3.12 or newer.
    ```
    On the first start Docker creates the tables from `docker/init.sql`. That file only runs on an
    empty database: after changing it, either apply the change by hand or wipe the database (see
-   below).
+   below). A database created before the course card table existed (November 2026) needs the
+   `CREATE TABLE course_card_sections` statement from the end of `docker/init.sql` run by hand.
 
 ## Usage
 
@@ -62,7 +66,10 @@ uv run src/run_ingestion.py
 ```
 
 This fills the database in a single transaction: majors and their ECTS courses, admission
-thresholds, then faculty units and staff from Informator. Before running it:
+thresholds, faculty units and staff from Informator, then the course cards. The first run
+downloads every course card PDF into `data/course_cards/` (several hundred files with pauses between
+them, so over an hour); later runs read them from there and take a few minutes. A course card
+that cannot be downloaded or read is skipped and listed at the end. Before running it:
 
 - Put the thresholds PDF in `data/`, named `progi punktowe <anything>.pdf` (e.g.
   `progi punktowe 2025-2021.pdf`) — exactly one such file. The years are read from the table

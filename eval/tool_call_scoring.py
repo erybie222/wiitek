@@ -24,6 +24,8 @@ from langchain_core.messages import BaseMessage
 from . import _src_path  # noqa: F401  (puts src/ on sys.path)
 
 # isort: split
+from database.connection import get_db_connection
+from database.queries.course_card_sections import course_card_section_exists
 from database.repository import TOOLS
 
 from .schemas import ToolCall, ToolScores
@@ -152,6 +154,30 @@ def returned_expected_section(expected_sections: list[dict], agent_calls: list[T
     )
 
 
+def expected_sections_not_stored(search_calls: list[dict]) -> list[str]:
+    """List the syllabus sections a case expects that the database does not hold at all.
+
+    Such a section can never be returned by a search, so a miss on it is a benchmark typo or a section the parser did
+    not store — not the agent's fault.
+
+    Args:
+        search_calls: The case's expected searches, each ``{"tool", "expected_sections"}``.
+
+    Returns:
+        list[str]: One "course_code / section" per missing section, e.g. ``["S1Inf1>ALIN / Literatura"]``; empty when
+            all are stored (or there are no searches, in which case the database is not queried).
+    """
+    wanted_sections = [wanted for call in search_calls for wanted in call["expected_sections"]]
+    if not wanted_sections:
+        return []
+    with get_db_connection() as connection, connection.cursor() as cursor:
+        return [
+            f"{wanted['course_code']} / {wanted['section']}"
+            for wanted in wanted_sections
+            if not course_card_section_exists(cursor, wanted["course_code"], wanted["section"])
+        ]
+
+
 def score_tool_calls(expected: list[dict], agent_calls: list[ToolCall]) -> ToolScores:
     """Score the agent's tool calls on one case against one route (no LLM).
 
@@ -214,13 +240,24 @@ def score_tool_calls(expected: list[dict], agent_calls: list[ToolCall]) -> ToolS
             missing_tools.append(name)
 
     # Right data, step 1: run the expected calls now to get the correct rows.
-    # Searches are not run; their sections are checked in step 3.
+    # Searches are not run; their sections are checked in step 3, but each
+    # must exist in the database, or no agent could ever find it.
     run_calls = [call for call in expected if "expected_sections" not in call]
     search_calls = [call for call in expected if "expected_sections" in call]
     run_calls_required = [not call.get("only_resolves_prev_id") for call in run_calls]
+    expected_calls_error = None
     try:
         correct_results = run_expected_calls(run_calls)
+        sections_not_stored = expected_sections_not_stored(search_calls)
     except Exception as error:
+        expected_calls_error = f"could not run an expected call: {error}"
+    else:
+        if sections_not_stored:
+            expected_calls_error = (
+                "expected course card sections not in the database (a typo in the benchmark, or the parser did not "
+                "store them): " + "; ".join(sections_not_stored)
+            )
+    if expected_calls_error:
         return ToolScores(
             called_right_tools=not missing_tools,
             got_right_data=None,
@@ -229,7 +266,7 @@ def score_tool_calls(expected: list[dict], agent_calls: list[ToolCall]) -> ToolS
             expected_tools=expected_tools,
             called_tools=called_tools,
             wrong_data_tools=[],
-            expected_calls_error=f"could not run an expected call: {error}",
+            expected_calls_error=expected_calls_error,
         )
 
     # Right data, step 2: each correct result needs an agent call to the same
