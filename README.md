@@ -54,8 +54,7 @@ Python 3.12 or newer.
    ```
    On the first start Docker creates the tables from `docker/init.sql`. That file only runs on an
    empty database: after changing it, either apply the change by hand or wipe the database (see
-   below). A database created before the course card table existed (November 2026) needs the
-   `CREATE TABLE course_card_sections` statement from the end of `docker/init.sql` run by hand.
+   below).
 
 ## Usage
 
