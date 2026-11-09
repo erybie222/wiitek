@@ -7,7 +7,7 @@ to fix:
 **Layer 1 — tool calls, checked by code** (``tool_call_scoring.py``):
 ``called_right_tools`` — the agent called every tool the case needs;
 ``got_right_data`` — those calls returned the same data as the correct calls
-(for a syllabus search: one of the case's expected sections);
+(for a course card search: one of the case's expected sections);
 ``called_no_tools`` — on cases that need no tools, the agent called none;
 ``extra_calls`` — how many calls it made beyond what was needed.
 A case may list ``alternative_routes``; they are scored only when the agent

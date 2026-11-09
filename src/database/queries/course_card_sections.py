@@ -21,7 +21,7 @@ def upsert_course_card_section(
     chunk_index: int,
     content: str,
 ) -> None:
-    """Insert one piece of a course's syllabus section, or update it if it is already stored.
+    """Insert one piece of a course card section, or update it if it is already stored.
 
     When the stored text changes, its vector is cleared with it, so a vector of the old text can never be searched; the
     embedding step computes a new one. An unchanged text keeps its vector.
@@ -31,7 +31,7 @@ def upsert_course_card_section(
         course_code: Catalog code of the course, e.g. "S1Inf1>ALIN".
         major_id: Id of the major whose catalog lists the course.
         semester: Semester the catalog lists the course in.
-        source_url: Link to the syllabus PDF the text was read from.
+        source_url: Link to the course card PDF the text was read from.
         section: Section heading as printed in the PDF, e.g. "Literatura".
         chunk_index: Position of the piece within its section; 0 while sections are stored whole.
         content: Text of the piece.
@@ -59,7 +59,7 @@ def upsert_course_card_section(
 
 
 def get_sections_for_embedding(cursor: DBCursor) -> list[dict]:
-    """List every stored syllabus piece with what the embedding step needs to decide whether its vector is current.
+    """List every stored course card piece with what the embedding step needs to decide whether its vector is current.
 
     Args:
         cursor: Database cursor of the ingestion run.
@@ -83,7 +83,7 @@ def get_sections_for_embedding(cursor: DBCursor) -> list[dict]:
 def copy_embedding_by_hash(cursor: DBCursor, ids: list[int], content_hash: str, embedding_model: str) -> bool:
     """Give pieces the vector another piece already has for the same text and model, without asking the API.
 
-    This is how the copies of a faculty-wide syllabus (PE, listed on every major) share one computed vector.
+    This is how the copies of a faculty-wide course card (PE, listed on every major) share one computed vector.
 
     Args:
         cursor: Database cursor of the ingestion run.
@@ -133,15 +133,15 @@ def set_embedding(cursor: DBCursor, ids: list[int], content_hash: str, embedding
 
 
 def delete_sections_not_seen_in_run(cursor: DBCursor, course_code: str, major_id: int, semester: int) -> int:
-    """Delete the syllabus pieces of one course that the current ingestion run has not written.
+    """Delete the course card pieces of one course that the current ingestion run has not written.
 
-    Call it right after storing the course's syllabus: what is left unwritten is a section the PDF no longer has. A row
+    Call it right after storing the course's card: what is left unwritten is a section the PDF no longer has. A row
     written in this run has ``last_updated`` equal to ``CURRENT_TIMESTAMP``, which Postgres fixes at the start of the
     transaction, so this only works while the whole run is one transaction.
 
     Args:
         cursor: Database cursor of the ingestion run.
-        course_code: Catalog code of the course whose syllabus was just stored.
+        course_code: Catalog code of the course whose card was just stored.
         major_id: Id of the course's major.
         semester: The course's semester.
 
@@ -160,7 +160,7 @@ def delete_sections_not_seen_in_run(cursor: DBCursor, course_code: str, major_id
 
 
 def course_card_section_exists(cursor: DBCursor, course_code: str, section: str) -> bool:
-    """Say whether the syllabus of a course has this section stored.
+    """Say whether a course's card has this section stored.
 
     Used by the evaluation to tell a benchmark typo (or a section the parser did not store) from an agent that searched
     badly.
@@ -187,7 +187,7 @@ def course_card_section_exists(cursor: DBCursor, course_code: str, section: str)
 
 
 def delete_course_card_sections(cursor: DBCursor) -> None:
-    """Delete every syllabus piece (used by ``clean_db.py``).
+    """Delete every course card piece (used by ``clean_db.py``).
 
     Args:
         cursor: Database cursor to run the SQL on.

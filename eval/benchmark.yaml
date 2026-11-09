@@ -47,14 +47,14 @@
 #     agent rightly does not make such a call (it already has the id from an
 #     earlier turn), add it anyway with `only_resolves_prev_id: true`: it is
 #     run to find the id, but not required from the agent.
-#   - A syllabus search (search_course_cards) is not run: its ranking depends on
+#   - A course card search (search_course_cards) is not run: its ranking depends on
 #     how the query is worded, so any query written here would be a guess.
-#     Instead of `args` it lists `expected_sections` — the syllabus sections
+#     Instead of `args` it lists `expected_sections` — the course card sections
 #     a correct answer can come from, each {course_code, section}. It counts
 #     as the right data when the results of any of the agent's searches
 #     include one of them; one search may cover several such calls. The code
 #     is not something the agent must pass: every search result says which
-#     course it comes from, and the code names one syllabus unambiguously,
+#     course it comes from, and the code names one course card unambiguously,
 #     where a name may not ("Statystyka" is on two majors).
 #
 # Rules for alternative_routes:
@@ -683,15 +683,15 @@ pytania_po_angielsku:
       - tool: get_course
         args: { major_name: "Artificial Intelligence", semester: 1 }
 
-  - id: en-sylabus-wymagania-statystyka
+  - id: en-karta-wymagania-statystyka
     question: "What are the prerequisites for Statistics on Artificial Intelligence?"
     entities: { kierunek: "Sztuczna inteligencja", przedmiot: "Statystyka", sekcja: "Wymagania wstępne" }
     expected_data:
       {
         wymagania_wstepne: "Podstawowa wiedza w zakresie analizy matematycznej, algebry zbiorów oraz rachunku prawdopodobieństwa",
       }
-    expected_answer: "Basic knowledge of mathematical analysis, set algebra and probability theory (prerequisites in the syllabus of 'Statystyka', Sztuczna inteligencja). English answer; the course name may stay Polish, as stored."
-    notes: "W bazie przedmiot nazywa się tylko „Statystyka” — angielskiej nazwy przedmiotu nie ma, a sylabusy są tylko po polsku (decyzja fazy 5). Mierzy, czy pytanie po angielsku trafia w polski tekst. Statystyka jest też na Cyberbezpieczeństwie, z innymi wymaganiami wstępnymi."
+    expected_answer: "Basic knowledge of mathematical analysis, set algebra and probability theory (prerequisites in the course card of 'Statystyka', Sztuczna inteligencja). English answer; the course name may stay Polish, as stored."
+    notes: "W bazie przedmiot nazywa się tylko „Statystyka” — angielskiej nazwy przedmiotu nie ma, a karty przedmiotów są tylko po polsku (decyzja fazy 5). Mierzy, czy pytanie po angielsku trafia w polski tekst. Statystyka jest też na Cyberbezpieczeństwie, z innymi wymaganiami wstępnymi."
     source: "https://put.poznan.pl/cards/2026_2027/Sztuczna%20inteligencja_Artificial%20Intelligence/stacjonarne/studia%20pierwszego%20stopnia/3/Statystyka%20%28STAT%29.pdf"
     expected_calls:
       - tool: search_course_cards
@@ -819,7 +819,7 @@ dopytania:
       - tool: get_office_hour
         args: { staff_id: "$prev.id" }
 
-  - id: dopytanie-sylabus-literatura-tego-przedmiotu
+  - id: dopytanie-karta-literatura-tego-przedmiotu
     earlier_questions:
       - "Kto koordynuje Podstawy genetyki na Bioinformatyce?"
     question: "a z jakiej książki się uczyć?"
@@ -860,20 +860,20 @@ dopytania:
     expected_calls: []
 
 # ---------------------------------------------------------------------------
-# Category 11 — sylabusy (course cards)
+# Category 11 — karty_przedmiotow (course cards)
 #
 # What a course is about, how it is passed, its literature and who runs it —
-# answered from the course syllabus PDFs (search_course_cards), not from the ECTS
+# answered from the course card PDFs (search_course_cards), not from the ECTS
 # catalog: ECTS, hours and whether there is an exam still come from
-# get_course. Each case's `source` is the syllabus PDF its values were checked
+# get_course. Each case's `source` is the course card PDF its values were checked
 # in. Sections are named as the PDF's headings, except the first page's two
 # columns, stored together as "Koordynatorzy i wykładowcy". A question that
-# names no course has to be checked against every syllabus of the major, not
+# names no course has to be checked against every course card of the major, not
 # a sample: its reference must not miss another course that answers it as
 # well.
 # ---------------------------------------------------------------------------
-sylabusy:
-  - id: sylabus-literatura-statystyka-cyberbezpieczenstwo
+karty_przedmiotow:
+  - id: karta-literatura-statystyka-cyberbezpieczenstwo
     question: "Jaka jest literatura podstawowa do Statystyki na Cyberbezpieczeństwie?"
     entities: { kierunek: "Cyberbezpieczeństwo", przedmiot: "Statystyka", sekcja: "Literatura" }
     expected_data:
@@ -881,14 +881,14 @@ sylabusy:
         - "Krysicki W., Bartos J., Dyczka W., Królikowska K., Wasilewski M.: Rachunek prawdopodobieństwa i statystyka matematyczna w zadaniach, wyd. 8, PWN, Warszawa 2012"
         - "Bobrowski D., Maćkowiak-Łybacka K.: Wybrane metody wnioskowania statystycznego, Wyd. PP, Poznań 2004"
     expected_answer: "Literatura podstawowa: 1) W. Krysicki i in., „Rachunek prawdopodobieństwa i statystyka matematyczna w zadaniach”, wyd. 8, PWN 2012; 2) D. Bobrowski, K. Maćkowiak-Łybacka, „Wybrane metody wnioskowania statystycznego”, Wyd. PP 2004."
-    notes: "Literatura uzupełniająca (Devore; Ross) nie jest wymagana, ale jej podanie nie jest błędem. Sylabus Statystyki na Sztucznej inteligencji ma tę samą literaturę, więc pomylenie kierunków nie zmieni tu odpowiedzi — kierunki rozróżnia sylabus-edge-ta-sama-nazwa-dwa-kierunki."
+    notes: "Literatura uzupełniająca (Devore; Ross) nie jest wymagana, ale jej podanie nie jest błędem. Karta przedmiotu Statystyki na Sztucznej inteligencji ma tę samą literaturę, więc pomylenie kierunków nie zmieni tu odpowiedzi — kierunki rozróżnia karta-edge-ta-sama-nazwa-dwa-kierunki."
     source: "https://put.poznan.pl/cards/2026_2027/Cyberbezpiecze%C5%84stwo/stacjonarne/studia%20pierwszego%20stopnia/3/Statystyka%20%28STAT%29.pdf"
     expected_calls:
       - tool: search_course_cards
         expected_sections:
           - { course_code: "S1Cybez1>STAT", section: "Literatura" }
 
-  - id: sylabus-skala-ocen-optoelektronika
+  - id: karta-skala-ocen-optoelektronika
     question: "Ile procent trzeba zdobyć z Optoelektroniki na ocenę 4,0?"
     entities:
       {
@@ -897,15 +897,15 @@ sylabusy:
         sekcja: "Metody weryfikacji efektów uczenia się i kryteria oceny",
       }
     expected_data: { ocena: "4,0", procent_punktow: "70%–79%" }
-    expected_answer: "Co najmniej 70% — w skali ocen z sylabusu przedział 70%–79% daje 4,0."
-    notes: "Pełna skala z sylabusu: <50% – 2,0; 50–59% – 3,0; 60–69% – 3,5; 70–79% – 4,0; 80–89% – 4,5; 90–100% – 5,0. Optoelektronika jest tylko na Mikroelektronice i komunikacji cyfrowej, więc pytanie nie podaje kierunku. Błąd: „około 70%” albo przedział sąsiedniej oceny."
+    expected_answer: "Co najmniej 70% — w skali ocen z karty przedmiotu przedział 70%–79% daje 4,0."
+    notes: "Pełna skala z karty przedmiotu: <50% – 2,0; 50–59% – 3,0; 60–69% – 3,5; 70–79% – 4,0; 80–89% – 4,5; 90–100% – 5,0. Optoelektronika jest tylko na Mikroelektronice i komunikacji cyfrowej, więc pytanie nie podaje kierunku. Błąd: „około 70%” albo przedział sąsiedniej oceny."
     source: "https://put.poznan.pl/cards/2026_2027/Mikroelektronika%20i%20komunikacja%20cyfrowa/stacjonarne/studia%20pierwszego%20stopnia/5/Optoelektronika%20%28OPTO%29.pdf"
     expected_calls:
       - tool: search_course_cards
         expected_sections:
           - { course_code: "S1MiKC2>OPTO", section: "Metody weryfikacji efektów uczenia się i kryteria oceny" }
 
-  - id: sylabus-edge-brak-progu-socjologia
+  - id: karta-edge-brak-progu-socjologia
     question: "Ile procent punktów trzeba zdobyć, żeby zaliczyć Elementy socjologii i etyki?"
     entities:
       {
@@ -918,8 +918,8 @@ sylabusy:
         prog_procentowy: null,
         sposob_weryfikacji: "Rozmowy podczas zajęć, praca pisemna na zatwierdzony wcześniej temat.",
       }
-    expected_answer: "Sylabus nie podaje progu procentowego — efekty weryfikowane są przez rozmowy podczas zajęć i pracę pisemną na zatwierdzony wcześniej temat. Żadnej liczby procent podawać nie wolno."
-    edge_case: "pytanie o liczbę, której źródło nie podaje — kusi 50%, obecne w wielu innych sylabusach"
+    expected_answer: "Karta przedmiotu nie podaje progu procentowego — efekty weryfikowane są przez rozmowy podczas zajęć i pracę pisemną na zatwierdzony wcześniej temat. Żadnej liczby procent podawać nie wolno."
+    edge_case: "pytanie o liczbę, której źródło nie podaje — kusi 50%, obecne w wielu innych kartach przedmiotów"
     notes: "Przedmiot obieralny, tylko na Teleinformatyce (semestr 1)."
     source: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia%20pierwszego%20stopnia/1/przedmioty%20obieralne/Elementy%20socjologii%20i%20etyki%20%28ESiE%29.pdf"
     expected_calls:
@@ -927,20 +927,20 @@ sylabusy:
         expected_sections:
           - { course_code: "S1Teleinf1>ESiE", section: "Metody weryfikacji efektów uczenia się i kryteria oceny" }
 
-  - id: sylabus-koordynator-i-prowadzacy-socjologia
+  - id: karta-koordynator-i-prowadzacy-socjologia
     question: "Kto koordynuje Elementy socjologii i etyki, a kto prowadzi zajęcia?"
     entities:
       { kierunek: "Teleinformatyka", przedmiot: "Elementy socjologii i etyki", sekcja: "Koordynatorzy i wykładowcy" }
     expected_data: { koordynator: "dr Radosław Kot", prowadzacy: "dr Michał Weres" }
     expected_answer: "Koordynator: dr Radosław Kot; zajęcia prowadzi (wykładowca): dr Michał Weres."
-    edge_case: "koordynator i prowadzący to dwie różne osoby z dwóch kolumn pierwszej strony sylabusu — zamiana ról = błąd"
+    edge_case: "koordynator i prowadzący to dwie różne osoby z dwóch kolumn pierwszej strony karty przedmiotu — zamiana ról = błąd"
     source: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia%20pierwszego%20stopnia/1/przedmioty%20obieralne/Elementy%20socjologii%20i%20etyki%20%28ESiE%29.pdf"
     expected_calls:
       - tool: search_course_cards
         expected_sections:
           - { course_code: "S1Teleinf1>ESiE", section: "Koordynatorzy i wykładowcy" }
 
-  - id: sylabus-wymagania-wf-plywanie
+  - id: karta-wymagania-wf-plywanie
     question: "Czy na WF trzeba umieć pływać?"
     entities: { przedmiot: "Nauka pływania", sekcja: "Wymagania wstępne" }
     expected_data:
@@ -948,7 +948,7 @@ sylabusy:
         nauka_plywania_wymagania_wstepne: "Brak przeciwskazań zdrowotnych do wykonywania ćwiczeń fizycznych i pływania.",
       }
     expected_answer: "Nie trzeba — wśród zajęć sportowych do wyboru jest „Nauka pływania”, która wymaga tylko braku przeciwwskazań zdrowotnych do ćwiczeń fizycznych i pływania."
-    edge_case: "„WF” to grupa przedmiotów obieralnych, nie jeden sylabus — pierwszy pasujący fragment (ogólny sylabus „Wychowanie fizyczne”: w przypadku pływania wymagane są podstawowe umiejętności) prowadzi do mylącego „tak”"
+    edge_case: "„WF” to grupa przedmiotów obieralnych, nie jedna karta przedmiotu — pierwszy pasujący fragment (ogólna karta przedmiotu „Wychowanie fizyczne”: w przypadku pływania wymagane są podstawowe umiejętności) prowadzi do mylącego „tak”"
     notes: >
       Zajęcia sportowe (kody C_CS>…) są obieralne i wspólne dla wydziału.
       „Nauka pływania” (NP30) i „Pływanie” (Pły30) są tylko w semestrze 2, na
@@ -957,10 +957,10 @@ sylabusy:
       porównana 2026-11-04 na Informatyce i Cyberbezpieczeństwie — identyczna,
       dlatego pytanie nie podaje kierunku. Dodanie, że „Pływanie” wymaga
       umiejętności pływania (technika elementarna, utrzymanie się na głębokiej
-      wodzie), nie jest błędem. Ogólny sylabus „Wychowanie fizyczne” (WF30)
+      wodzie), nie jest błędem. Ogólna karta przedmiotu „Wychowanie fizyczne” (WF30)
       mówi, że do pływania potrzebne są podstawowe umiejętności — to prawda o
       tamtym przedmiocie, ale bez „Nauki pływania” odpowiedź „tak” wprowadza w
-      błąd. „Pływać” w pytaniu, „pływania” w sylabusach.
+      błąd. „Pływać” w pytaniu, „pływania” w kartach przedmiotów.
     source:
       - "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia/2/przedmioty%20obieralne/Nauka%20p%C5%82ywania%20%28NP30%29.pdf"
       - "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia/2/przedmioty%20obieralne/P%C5%82ywanie%20%28P%C5%82y30%29.pdf"
@@ -969,21 +969,21 @@ sylabusy:
         expected_sections:
           - { course_code: "C_CS>NP30", section: "Wymagania wstępne" }
 
-  - id: sylabus-edge-nieistniejacy-przedmiot
+  - id: karta-edge-nieistniejacy-przedmiot
     question: "Jaka jest literatura do Kryptografii kwantowej na Cyberbezpieczeństwie?"
     entities: { kierunek: "Cyberbezpieczeństwo", przedmiot: "Kryptografia kwantowa", sekcja: "Literatura" }
     expected_data: null
     expected_answer: "Nie wiem — przedmiotu „Kryptografia kwantowa” nie ma w planie studiów Cyberbezpieczeństwa. Nie wolno podać literatury innego przedmiotu jako odpowiedzi."
     edge_case: "nieistniejący przedmiot o nazwie bliskiej istniejącemu („Wprowadzenie do obliczeń kwantowych”) — bot nie może podstawić innego przedmiotu"
     source: *przedmioty_cyber
-    # expected_calls note: get_course, not a syllabus search, shows that the course does not
-    #   exist: an empty search only says that no syllabus text matched, and a course can exist
-    #   without a stored syllabus ("doesn't exist" is not "exists but has no data").
+    # expected_calls note: get_course, not a course card search, shows that the course does not
+    #   exist: an empty search only says that no course card text matched, and a course can exist
+    #   without a stored course card ("doesn't exist" is not "exists but has no data").
     expected_calls:
       - tool: get_course
         args: { major_name: "Cyberbezpieczeństwo", course_name: "Kryptografia kwantowa" }
 
-  - id: sylabus-edge-ta-sama-nazwa-dwa-kierunki
+  - id: karta-edge-ta-sama-nazwa-dwa-kierunki
     question: "Kto koordynuje Statystykę?"
     entities:
       {
@@ -1014,14 +1014,14 @@ sylabusy:
           - { course_code: "S1Cybez1>STAT", section: "Koordynatorzy i wykładowcy" }
           - { course_code: "S1SI1E>STAT", section: "Koordynatorzy i wykładowcy" }
 
-  - id: sylabus-bez-nazwy-efekty-3d-teleinformatyka
+  - id: karta-bez-nazwy-efekty-3d-teleinformatyka
     question: "Na którym przedmiocie na Teleinformatyce programuje się efekty 3D?"
     entities: { kierunek: "Teleinformatyka", przedmiot: "Grafika komputerowa" }
     expected_data: { przedmiot: "Grafika komputerowa" }
     expected_answer: "Na Grafice komputerowej."
-    edge_case: "pytanie bez nazwy przedmiotu i innymi słowami niż sylabus — „efekty 3D”, a w sylabusie „grafika trójwymiarowa” i „efekty graficzne za pomocą języka shader'ów”"
+    edge_case: "pytanie bez nazwy przedmiotu i innymi słowami niż karta przedmiotu — „efekty 3D”, a w karcie „grafika trójwymiarowa” i „efekty graficzne za pomocą języka shader'ów”"
     notes: >
-      Sprawdzone 2026-11-09 na wszystkich sylabusach Teleinformatyki w bazie:
+      Sprawdzone 2026-11-09 na wszystkich kartach przedmiotów Teleinformatyki w bazie:
       programowanie grafiki 3D ma tylko Grafika komputerowa (semestr 6,
       obowiązkowa) — laboratorium „Oprogramowanie efektów graficznych za
       pomocą języka shader'ów”, OpenGL/WebGL. Przesyłanie danych
@@ -1041,14 +1041,14 @@ sylabusy:
           - { course_code: "S1Teleinf1>GK", section: "Przedmiotowe efekty uczenia się" }
           - { course_code: "S1Teleinf1>GK", section: "Cel przedmiotu" }
 
-  - id: sylabus-mieszane-ects-lasery-led-mikroelektronika
+  - id: karta-mieszane-ects-lasery-led-mikroelektronika
     question: "Ile ECTS ma przedmiot na Mikroelektronice i komunikacji cyfrowej, na którym uczą o laserach i diodach LED?"
     entities: { kierunek: "Mikroelektronika i komunikacja cyfrowa", przedmiot: "Optoelektronika" }
     expected_data: { przedmiot: "Optoelektronika", ects: 2, assessment_type: "Egzamin" }
     expected_answer: "Optoelektronika — 2 ECTS, kończy się egzaminem."
-    edge_case: "pytanie mieszane — przedmiot znaleziony w sylabusach, ECTS i forma zaliczenia z get_course, nie z sylabusu"
+    edge_case: "pytanie mieszane — przedmiot znaleziony w kartach przedmiotów, ECTS i forma zaliczenia z get_course, nie z karty"
     notes: >
-      Sprawdzone 2026-11-09 na wszystkich sylabusach kierunku w bazie: lasery i
+      Sprawdzone 2026-11-09 na wszystkich kartach przedmiotów kierunku w bazie: lasery i
       diody LED razem ma tylko Optoelektronika (semestr 5, obowiązkowa) —
       „Widmo emisyjne diody LED i diody laserowej”, laboratorium LED/LASER.
       Lasery bez LED: Komunikacja optyczna (w efektach uczenia się) i

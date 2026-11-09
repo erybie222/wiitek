@@ -95,7 +95,7 @@ class ToolScores(BaseModel):
     got_right_data: bool | None = Field(
         description=(
             "Every expected call has an agent call to the same tool that returned the "
-            "same data — for a syllabus search, one whose results include one of the "
+            "same data — for a course card search, one whose results include one of the "
             "case's expected_sections. Arguments are not compared, only results. None "
             "when the case needs no tools, or when the expected calls could not be run."
         )

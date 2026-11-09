@@ -195,7 +195,7 @@ def get_course(
 
 
 def get_courses_with_card_links(cursor: DBCursor) -> list[dict]:
-    """List every stored course that links to a syllabus PDF.
+    """List every stored course that links to a course card PDF.
 
     Args:
         cursor: Database cursor to run the SQL on.
@@ -203,7 +203,7 @@ def get_courses_with_card_links(cursor: DBCursor) -> list[dict]:
     Returns:
         list[dict]: One dict per course row, ordered by link; courses without a link are left out. Each dict:
             ``course_code`` (str) — catalog code, e.g. "S1Inf1>ALIN". ``major_id`` (int) — id of the major whose catalog
-            lists it. ``semester`` (int) — semester it is listed in. ``source_url`` (str) — link to its syllabus
+            lists it. ``semester`` (int) — semester it is listed in. ``source_url`` (str) — link to its course card
             PDF, e.g.
         "https: //put.poznan.pl/cards/2026_2027/Informatyka/.../Algebra liniowa (ALIN).pdf".
     """

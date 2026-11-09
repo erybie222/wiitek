@@ -1,9 +1,9 @@
 """Vectors for the course card search: what is embedded, how, and the ingestion step that stores them.
 
-Each syllabus section is embedded together with a short header naming its course and section ("Przedmiot: … /
+Each course card section is embedded together with a short header naming its course and section ("Przedmiot: … /
 Sekcja: …"): a section's text often does not say what it is about — a reading list is bare titles, and the
 prerequisites of Statistics need not contain the word. The major and semester stay out of the header on purpose: they
-are exact SQL filters in the search, and leaving them out makes the copies of a faculty-wide syllabus (PE, listed on
+are exact SQL filters in the search, and leaving them out makes the copies of a faculty-wide course card (PE, listed on
 every major) the same text, so they share one hash and one vector.
 
 The search embeds its query with the same model (``get_embedder``); vectors of different models are never compared.
@@ -31,7 +31,7 @@ EMBEDDING_BATCH_SIZE = 100
 
 
 def embedding_text(course_name: str, section: str, content: str) -> str:
-    r"""Build the text a syllabus section is embedded from.
+    r"""Build the text a course card section is embedded from.
 
     Args:
         course_name: The course's name in the catalog, e.g. "Algebra liniowa".
@@ -84,7 +84,7 @@ def get_embedder() -> OpenAIEmbeddings:
 
 
 def embed_course_card_sections(cursor: DBCursor) -> None:
-    """Give every stored syllabus section a vector of the current model, and print what was done.
+    """Give every stored course card section a vector of the current model, and print what was done.
 
     Run after ``ingest_course_cards``. A section keeps its vector while the text it was computed from (header included,
     so a renamed course counts as changed) and the model stay the same. Otherwise the vector is copied from another

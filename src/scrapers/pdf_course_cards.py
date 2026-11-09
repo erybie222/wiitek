@@ -3,7 +3,7 @@
 A course card ("karta opisu przedmiotu") is generated from one template, so the parser relies on its layout:
 
 - a section heading is set in the ArialNarrow font, body text in ArialMT. Headings are recognised by that font, never
-  by their words: one syllabus pastes the words "Cel przedmiotu" into its body text;
+  by their words: one course card pastes the words "Cel przedmiotu" into its body text;
 - grey body text is template wording, the same in every file (e.g. "Efekty uczenia się przedstawione wyżej
   weryfikowane są w następujący sposób:"), and is left out;
 - the page number sits alone in the bottom margin, which is cut off by position. A rule like "drop a line holding only
@@ -16,7 +16,7 @@ A course card ("karta opisu przedmiotu") is generated from one template, so the 
 
 PDFs are cached under ``data/course_cards/``, mirroring the link's path after ``/cards/`` (which starts with the academic
 year). A cached file is used without asking the server: each academic year has new links, so a new year downloads
-itself. The first run downloads every syllabus, with pauses (the server answers 503 every few files), which takes over
+itself. The first run downloads every course card, with pauses (the server answers 503 every few files), which takes over
 an hour; later runs only parse.
 """
 
@@ -39,7 +39,7 @@ from database.queries.course_card_sections import (
 from database.queries.courses import get_courses_with_card_links
 
 COURSE_CARD_CACHE_DIR = Path("data/course_cards")
-# Every syllabus link starts with this; the rest of the path becomes the cache path.
+# Every course card link starts with this; the rest of the path becomes the cache path.
 COURSE_CARD_URL_PREFIX = "https://put.poznan.pl/cards/"
 # Characters Windows does not allow in a file name; replaced by "_" in cache paths.
 WINDOWS_UNSAFE_CHARACTERS = re.compile(r'[<>:"\\|?*]')
@@ -75,7 +75,8 @@ SECTIONS_TO_STORE = (
 STAFF_HEADING = "Koordynatorzy Wykładowcy"
 LECTURERS_HEADING_WORD = "Wykładowcy"
 STAFF_SECTION = "Koordynatorzy i wykładowcy"
-# First-page headings of what the catalog already holds (name, major, hours, ECTS).
+# First-page headings of what the catalog already holds (name, major, hours, ECTS). The first one is the PDF's own
+# title, word for word as printed (so "SYLABUS" stays: it is matched, not our name for the document).
 SECTIONS_TO_SKIP = ("KARTA OPISU PRZEDMIOTU - SYLABUS", "Przedmiot", "Liczba godzin", "Liczba punktów ECTS")
 LAST_SECTION_HEADING = "Bilans nakładu pracy przeciętnego studenta"
 # A section holding only one of these (case ignored) says nothing and is not stored.
@@ -83,7 +84,7 @@ EMPTY_SECTION_TEXTS = {"", "brak", "brak.", "-", "–", "—"}
 
 
 class CourseCardUnavailableError(Exception):
-    """A course's syllabus cannot be stored in this run; the message says why. Its stored sections are kept."""
+    """A course's card cannot be stored in this run; the message says why. Its stored sections are kept."""
 
 
 @dataclass
@@ -144,10 +145,10 @@ def is_grey(color: tuple | list | None) -> bool:
 
 
 def cached_pdf_path(url: str, cache_dir: Path = COURSE_CARD_CACHE_DIR) -> Path | None:
-    """Return where the cache keeps a syllabus PDF.
+    """Return where the cache keeps a course card PDF.
 
     Args:
-        url: Syllabus link, e.g. "https://put.poznan.pl/cards/2026_2027/Informatyka/.../Algebra liniowa (ALIN).pdf".
+        url: Course card link, e.g. "https://put.poznan.pl/cards/2026_2027/Informatyka/.../Algebra liniowa (ALIN).pdf".
         cache_dir: Root folder of the cache.
 
     Returns:
@@ -165,7 +166,7 @@ def cached_pdf_path(url: str, cache_dir: Path = COURSE_CARD_CACHE_DIR) -> Path |
 
 
 def download_course_card(session: requests.Session, url: str, path: Path) -> None:
-    """Download one syllabus PDF into the cache.
+    """Download one course card PDF into the cache.
 
     Retries a timeout, a dropped connection or a status in ``RETRY_STATUS_CODES`` (the server answers 503 every few
     files), waiting 5, 10, 20, 40 s. The file is written under a temporary name and renamed at the end, so an
@@ -173,7 +174,7 @@ def download_course_card(session: requests.Session, url: str, path: Path) -> Non
 
     Args:
         session: HTTP session shared by all downloads of the run.
-        url: Syllabus link.
+        url: Course card link.
         path: Where to save it (from ``cached_pdf_path``).
 
     Raises:
@@ -280,14 +281,14 @@ def staff_columns_text(heading: TextLine, body: list[TextLine]) -> str:
 
 
 def parse_course_card(pdf_path: Path) -> ParsedCourseCard:
-    """Cut a syllabus PDF into the sections worth storing.
+    """Cut a course card PDF into the sections worth storing.
 
     Args:
         pdf_path: The PDF file.
 
     Returns:
         ParsedCourseCard: The sections and what was left out; see its attributes. ``sections`` is empty when no known
-            heading was found (not a syllabus, or a changed template).
+            heading was found (not a course card, or a changed template).
     """
     parsed = ParsedCourseCard()
 
@@ -336,20 +337,20 @@ def parse_course_card(pdf_path: Path) -> ParsedCourseCard:
 
 
 def load_course_card(session: requests.Session, url: str, cache_dir: Path) -> tuple[ParsedCourseCard, bool]:
-    """Get one syllabus from the cache, or download it into the cache, and parse it.
+    """Get one course card from the cache, or download it into the cache, and parse it.
 
     Args:
         session: HTTP session shared by all downloads of the run.
-        url: Syllabus link.
+        url: Course card link.
         cache_dir: Root folder of the cache.
 
     Returns:
-        tuple[ParsedCourseCard, bool]: The parsed syllabus (with at least one section) and whether it was downloaded
+        tuple[ParsedCourseCard, bool]: The parsed course card (with at least one section) and whether it was downloaded
         now (False: read from the cache).
 
     Raises:
-        CourseCardUnavailableError: The link is not a syllabus link, the download failed, the PDF cannot be read or has
-            no known section.
+        CourseCardUnavailableError: The link is not a course card link, the download failed, the PDF cannot be read or
+            has no known section.
     """
     path = cached_pdf_path(url, cache_dir)
     if path is None:
@@ -368,11 +369,12 @@ def load_course_card(session: requests.Session, url: str, cache_dir: Path) -> tu
 
 
 def ingest_course_cards(cursor: DBCursor, cache_dir: Path = COURSE_CARD_CACHE_DIR) -> None:
-    """Store the sections of every stored course's syllabus, and print what was stored and what was not.
+    """Store the sections of every stored course's card, and print what was stored and what was not.
 
-    Run after the courses: it reads their links from the database. For each course the syllabus sections are upserted
-    and the course's sections its PDF no longer has are deleted. A syllabus that cannot be downloaded or read keeps its
-    stored sections. Sections of courses that left the catalog are already gone with the course (``ON DELETE CASCADE``).
+    Run after the courses: it reads their links from the database. For each course the course card sections are upserted
+    and the course's sections its PDF no longer has are deleted. A course card that cannot be downloaded or read keeps
+    its stored sections. Sections of courses that left the catalog are already gone with the course (``ON DELETE
+    CASCADE``).
 
     Args:
         cursor: Database cursor of the ingestion run.

@@ -153,7 +153,7 @@ def main() -> None:
 
             # Last, because the first run downloads every course card (over
             # an hour) and the Informator cookie could expire meanwhile. Needs
-            # the courses from step 2: it reads their syllabus links.
+            # the courses from step 2: it reads their course card links.
             ingest_course_cards(cursor)
 
             # Needs the sections just stored. Skips itself without an API key.

@@ -30,7 +30,7 @@ def load_cases(path: Path) -> list[dict]:
             missing means no tools are needed. A
                 call may add ``only_resolves_prev_id: true``: it is run to
                 give the next ``$prev.id`` its row, but not required. A
-                syllabus search has ``expected_sections`` (a list of
+                course card search has ``expected_sections`` (a list of
         ``{"course_code", "section"}``) instead of ``args``: it is not run, its results must include one of them.
             ``alternative_routes`` (list[dict] | None) — other valid call sequences, each ``{"why", "calls"}``;
             ``calls`` has the format of ``expected_calls``. ``expected_answer`` (str | None) — reference answer for the
@@ -55,7 +55,7 @@ def load_cases(path: Path) -> list[dict]:
 
 
 def check_expected_sections(case: dict) -> None:
-    """Make sure every syllabus search a case expects names the sections properly.
+    """Make sure every course card search a case expects names the sections properly.
 
     A misspelt key would otherwise never match a search result, and the agent would be scored as having missed a section
     the benchmark never really named.

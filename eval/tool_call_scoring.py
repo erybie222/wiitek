@@ -7,7 +7,7 @@ actually did:
 - did it call every tool the case needs? (``called_right_tools``)
 - did those calls return the right data? (``got_right_data``) — checked by
   running the expected calls on the database and comparing results, so the
-  exact wording of the agent's arguments does not matter. A syllabus search
+  exact wording of the agent's arguments does not matter. A course card search
   is the exception: it is not run, because its ranking depends on how the
   query is worded; it lists the sections a correct answer can come from
   (``expected_sections``), and the agent's search results must include one.
@@ -136,8 +136,8 @@ def returned_expected_section(expected_sections: list[dict], agent_calls: list[T
 
     Returns:
         bool: True when some search result row has the section of an accepted entry and lists that entry's course code
-            among its ``courses`` (one row per syllabus fragment; a fragment shared by several courses, like the
-            faculty-wide PE syllabus, lists them all). False when no search was made, or none returned such a row.
+            among its ``courses`` (one row per course card fragment; a fragment shared by several courses, like the
+            faculty-wide PE course card, lists them all). False when no search was made, or none returned such a row.
     """
     rows = [
         row
@@ -155,7 +155,7 @@ def returned_expected_section(expected_sections: list[dict], agent_calls: list[T
 
 
 def expected_sections_not_stored(search_calls: list[dict]) -> list[str]:
-    """List the syllabus sections a case expects that the database does not hold at all.
+    """List the course card sections a case expects that the database does not hold at all.
 
     Such a section can never be returned by a search, so a miss on it is a benchmark typo or a section the parser did
     not store — not the agent's fault.

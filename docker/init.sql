@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS office_hours (
 );
 
 -- Course card text: one row per section of one course's card PDF.
--- Belongs to a course row (a PE syllabus listed on twelve majors is stored
+-- Belongs to a course row (a PE course card listed on twelve majors is stored
 -- twelve times), and goes when the course leaves the catalog: ingestion
 -- updates courses in place, so the cascade fires only for a removed course.
 CREATE TABLE IF NOT EXISTS course_card_sections (

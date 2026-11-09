@@ -116,8 +116,8 @@ def leak_needles() -> dict[str, str]:
     """Collect what must not appear in a model-facing text, each with where it came from.
 
     From the benchmark: every question (earlier turns included), the ``entities``, ``expected_data`` and the arguments
-    (or, for a syllabus search, the ``expected_sections``) of every expected or alternative call, plus numbers and room
-    codes from the reference answers. From the calibration set: every question and answer.
+    (or, for a course card search, the ``expected_sections``) of every expected or alternative call, plus numbers and
+    room codes from the reference answers. From the calibration set: every question and answer.
 
     Returns:
         dict[str, str]: Normalized needle → origin, e.g.
