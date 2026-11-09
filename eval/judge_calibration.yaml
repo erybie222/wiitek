@@ -17,8 +17,10 @@
 #                          multi-turn benchmark case
 #   tool_calls             what the tools returned: [{name, args, result}];
 #                          [] when nothing was called. Copied from the real
-#                          database (2026-10-31), so the judge sees real rows —
-#                          and fixed here, so a re-ingestion changes nothing.
+#                          database (2026-10-31; the course card fragments from
+#                          search_course_cards results, 2026-11-09), so the
+#                          judge sees real rows — and fixed here, so a
+#                          re-ingestion changes nothing.
 #   answer                 the answer the judges score — written by hand
 #   expected_faithfulness  0/1/2 the faithfulness judge should give, or absent
 #   expected_correctness   0/1/2 the correctness judge should give, or absent;
@@ -270,6 +272,183 @@ tool_data:
             faculty: "WIiT",
             english_name: "Artificial Intelligence",
           }
+
+  card_stat_cyber_literatura: &card_stat_cyber_literatura
+    - name: search_course_cards
+      args: { query: "literatura", course_name: "Statystyka", major_name: "Cyberbezpieczeństwo", section: "Literatura" }
+      result:
+        - section: "Literatura"
+          content: "Podstawowa:\n1. Krysicki, W., J. Bartos, W. Dyczka, K. Królikowska i M. Wasilewski: Rachunek prawdopodobieństwa\ni statystyka matematyczna w zadaniach, wydanie 8. PWN Warszawa, 2012\n2. Bobrowski, D. i K. Maćkowiak-Łybacka: Wybrane metody wnioskowania statystycznego. Wyd. PP,\nPoznań, 2004\nUzupełniająca:\n1. Devore, J.L.: Probability and Statistics for Engineering and Sciences, Brooks/Cole, 2012\n2. Ross, S.M.: Introductory Statistics, Elsevier, 2010"
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1Cybez1>STAT",
+                course_name: "Statystyka",
+                major_name: "Cyberbezpieczeństwo",
+                semester: 3,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Cyberbezpieczeństwo/stacjonarne/studia pierwszego stopnia/3/Statystyka (STAT).pdf",
+              }
+
+  card_mikc_lasery_led: &card_mikc_lasery_led
+    - name: search_course_cards
+      args: { query: "lasery i diody LED", major_name: "Mikroelektronika i komunikacja cyfrowa" }
+      result:
+        - section: "Tematyka zajęć"
+          content: "Dualizm korpuskularno-falowy: promienie, fale, elektromagnetyzm, kwanty. Polaryzacja światła. Efekty\nelektrooptyczne i akustooptyczne. Wybrane elementy optyki zintegrowanej: falowody planarne, sprzęgacz\nkierunkowy, modulator elektrooptyczny, modulator elektroabsorbcyjny (efekt Franza-Keldysha), modulator\nMacha-Zehndera, modulatory akustooptyczne. Włókna fotoniczne. Rezonatory optyczne.\nPółprzewodnikowe materiały optoelektroniczne, nośniki prądu, pasmowa struktura energetyczna,\npółprzewodniki z prostą i skośną przerwą energetyczną. Oddziaływanie promieniowania z atomami.\nDetekcja i generacja światła w półprzewodnikach. Widmo emisyjne diody LED i diody laserowej.\nWzmacniacze optyczne. Klasyfikacja laserów i ich właściwości. Lasery z synchronizacją modów. Metody\nrealizacji różnych formatów modulacji sygnałów optycznych. Konwersja długości fal. Całkowicie optyczne\nregeneracja sygnałów. Komutacja optyczna.\nĆwiczenia laboratoryjne: wybrane właściwości spektralne LED/LASER, charakterystyki robocze diody LED/\nLASER, analogowy konwerter E/O, cyfrowy konwerter E/O, charakterystyki robocze diody PIN/APD,\nanalogowy konwerter O/E, cyfrowy konwerter O/E, modulator elektrooptyczny, komutator optyczny."
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1MiKC2>OPTO",
+                course_name: "Optoelektronika",
+                major_name: "Mikroelektronika i komunikacja cyfrowa",
+                semester: 5,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Mikroelektronika i komunikacja cyfrowa/stacjonarne/studia pierwszego stopnia/5/Optoelektronika (OPTO).pdf",
+              }
+        - section: "Metody dydaktyczne"
+          content: "Wykład: prezentacja multimedialna ilustrowana przykładami z aktywnym udziałem i dyskusją problemową\nstudentów.\nLaboratoria: praca przy zestawach pomiarowych - ćwiczenia praktyczne realizowane w oparciu o instrukcję."
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1MiKC2>OPTO",
+                course_name: "Optoelektronika",
+                major_name: "Mikroelektronika i komunikacja cyfrowa",
+                semester: 5,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Mikroelektronika i komunikacja cyfrowa/stacjonarne/studia pierwszego stopnia/5/Optoelektronika (OPTO).pdf",
+              }
+        - section: "Metody dydaktyczne"
+          content: "Wykład: prezentacja multimedialna ilustrowana przykładami z aktywnym udziałem i dyskusją\nproblemową studentów. Laboratora: praca przy zestawach pomiarowych - ćwiczenia praktyczne\nrealizowane w oparciu o instrukcję."
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1MiKC2>KOpt",
+                course_name: "Komunikacja optyczna",
+                major_name: "Mikroelektronika i komunikacja cyfrowa",
+                semester: 7,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Mikroelektronika i komunikacja cyfrowa/stacjonarne/studia pierwszego stopnia/7/przedmioty obieralne/Komunikacja optyczna (KOpt).pdf",
+              }
+
+  card_opto_skala_ocen: &card_opto_skala_ocen
+    - name: search_course_cards
+      args:
+        {
+          query: "skala ocen",
+          course_name: "Optoelektronika",
+          section: "Metody weryfikacji efektów uczenia się i kryteria oceny",
+        }
+      result:
+        - section: "Metody weryfikacji efektów uczenia się i kryteria oceny"
+          content: "Zaliczenie treści wykładowych ma formę testu pisemnego i/lub ustnego. Pytania w formie otwrtej,\nopisowej i obliczeniowej. Zaliczenie materiału laboratorium odbywa się na podstawie raportów\ntworzonych w trakcie realizowania ćwiczenia.\nSkala ocen: <50% - 2,0 (ndst); 50% do 59% - 3,0 (dst); 60% do 69% - 3,5 (dst+) ; 70% do 79% - 4,0 (db);\n80% do 89% - 4,5 (db+); 90% do 100% - 5,0 (bdb)."
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1MiKC2>OPTO",
+                course_name: "Optoelektronika",
+                major_name: "Mikroelektronika i komunikacja cyfrowa",
+                semester: 5,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Mikroelektronika i komunikacja cyfrowa/stacjonarne/studia pierwszego stopnia/5/Optoelektronika (OPTO).pdf",
+              }
+
+  card_esie_koordynatorzy: &card_esie_koordynatorzy
+    - name: search_course_cards
+      args:
+        {
+          query: "koordynator i prowadzący",
+          course_name: "Elementy socjologii i etyki",
+          section: "Koordynatorzy i wykładowcy",
+        }
+      result:
+        - section: "Koordynatorzy i wykładowcy"
+          content: "Koordynatorzy:\ndr Radosław Kot\nradoslaw.kot@put.poznan.pl\n\nWykładowcy:\ndr Michał Weres\nmichal.weres@put.poznan.pl"
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1Teleinf1>ESiE",
+                course_name: "Elementy socjologii i etyki",
+                major_name: "Teleinformatyka",
+                semester: 1,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia pierwszego stopnia/1/przedmioty obieralne/Elementy socjologii i etyki (ESiE).pdf",
+              }
+
+  card_si_stat_wymagania: &card_si_stat_wymagania
+    - name: search_course_cards
+      args:
+        {
+          query: "prerequisites",
+          course_name: "Statystyka",
+          major_name: "Sztuczna inteligencja",
+          section: "Wymagania wstępne",
+        }
+      result:
+        - section: "Wymagania wstępne"
+          content: "Podstawowa wiedza w zakresie analizy matematycznej, algebry zbiorów oraz rachunku\nprawdopodobieństwa"
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1SI1E>STAT",
+                course_name: "Statystyka",
+                major_name: "Sztuczna inteligencja",
+                semester: 3,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Sztuczna inteligencja_Artificial Intelligence/stacjonarne/studia pierwszego stopnia/3/Statystyka (STAT).pdf",
+              }
+
+  card_esie_weryfikacja: &card_esie_weryfikacja
+    - name: search_course_cards
+      args:
+        {
+          query: "próg zaliczenia",
+          course_name: "Elementy socjologii i etyki",
+          section: "Metody weryfikacji efektów uczenia się i kryteria oceny",
+        }
+      result:
+        - section: "Metody weryfikacji efektów uczenia się i kryteria oceny"
+          content: "Efekty uczenia się przedstawione wyżej weryfikowane są w następujący sposób:\nRozmowy podczas zajęć, praca pisemna na zatwierdzony wcześniej temat."
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1Teleinf1>ESiE",
+                course_name: "Elementy socjologii i etyki",
+                major_name: "Teleinformatyka",
+                semester: 1,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia pierwszego stopnia/1/przedmioty obieralne/Elementy socjologii i etyki (ESiE).pdf",
+              }
+
+  card_teleinf_3d: &card_teleinf_3d
+    - name: search_course_cards
+      args: { query: "programowanie efektów 3D", major_name: "Teleinformatyka" }
+      result:
+        - section: "Treści programowe"
+          content: "Wykłady:\n1. Podstawowe operacje matematyczne w grafice trójwymiarowej.\nGeometryczne przekształcenie w przestrzeni 2- i 3-wymiarowej. Matematyczny opis modeli 3D.\nMacierzowy opis przekształceń geometrycznych (translacja, skalowanie, rotacja, rzutowanie).\nOmówienie różnych technik rzutowania.\n2. Podstawowe pojęcia i techniki w grafice trójwymiarowej.\nModele światła, światło kierunkowe, światła rozproszone. Renderowanie modeli kolorowych,\nteksturowanie modeli. Filtrowanie tekstur. Kompresja tekstur, anty-aliasing. Bufor-Z, Bufor\nszablonowy.\n3. Klasyczny potok przetwarzania w grafice komputerowej.\nPrzetwarzanie wierzchołków i prymitywów. Proces rasteryzacji. Interpolacja atrybutów.\n4. Programowalny potok przetwarzania w grafice komputerowej - język opisu wysokiego poziomu.\nProgramy i atrybuty w OpenGL HLSL.\n5. Algorytmy cieniowania i renderowania efektów specjalnych.\nTechniki shadow volume i shadowmaps. Renderowanie portali luster. Bump-mapping.\n6. Zawansowane techniki animacji.\nAnimacje szkieletowe. Systemy cząsteczkowe.\n7. Zastosowania grafiki komputerowej w urządzeniach mobilnych i internecie.\nOpenGL ES, WebGL.\nĆwiczenia laboratoryjne:\n1. Pierwszy program wykorzystujący bibliotekę OpenGL/WebGL. Renderowanie prostych figur\ngeometrycznych.\n2. Wydajne nawigowanie w przestrzeni trójwymiarowej.\n3. Interakcja z przestrzenia trójwymiarowa.\n4. Praca z modelami trójwymiarowymi, ładowanie i wyświetlanie modeli trójwymiarowych.\nZapoznanie z programem Blender.\n5. Teksturowanie modeli.\n6. Cienie w scenie trójwymiarowej. Zaprojektowanie programu do rzucania cienia na obiekty\ntrójwymiarowe.\n7. Oprogramowanie efektów graficznych za pomocą języka shader'ów.\n8. Animacje postaci w formacie MD5."
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1Teleinf1>GK",
+                course_name: "Grafika komputerowa",
+                major_name: "Teleinformatyka",
+                semester: 6,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia pierwszego stopnia/6/Grafika komputerowa (GK).pdf",
+              }
+        - section: "Przedmiotowe efekty uczenia się"
+          content: "Wiedza:\n1. Posiada podstawowa wiedze na temat zagadnień związanych z przekształceniami geometrycznymi\nw przestrzeni trójwymiarowej wykorzystywanymi w programowaniu grafiki komputerowej\n2. Zna podstawy programowania układów GPU (procesorów graficznych)\n3. Zna zasady działania i budowę współczesnych układów graficznych. Ma wiedze w zakresie budowy i\nsposobu działania systemów teleinformatycznych służących do świadczenia usług multimedialnych, w\ntym przetwarzania, kompresji i transmisji obrazów.\nUmiejętności:\n1. Potrafi posługiwać się podstawowymi algorytmami obliczeniowymi, strukturami danych i jeżykami\nprogramowania wysokiego poziomu, rozwiązując problemy techniczne związane z grafika\nkomputerowa.\n2. Potrafi wykorzystywać mechanizmy programowania i środowiska programistyczne jeżyków\nobiektowych oraz dostępne oprogramowanie biblioteczne w celu oprogramowania procesorów\ngraficznych.\n3. Potrafi określać podstawowe wymagania dla systemów teleinformatycznych realizujących usługi\nmultimedialne, implementować w systemach multimedialnych najczęściej stosowane efekty grafiki\ntrójwymiarowej oraz projektować systemy transmisji obrazu.\nKompetencje społeczne:\n1. Zna ograniczenia własnej wiedzy i rozumie konieczność jej uaktualniania. Jest otwarty na\nmożliwości ciągłego dokształcania się i podnoszenia kompetencji zawodowych, osobistych i\nspołecznych.\n2. Rozumie wpływ pracy własnej na wyniki zespołu i konieczność podporządkowania się zasadom\npracy w zespole oraz ponoszenia odpowiedzialności za wspólnie realizowane zadania, dostrzega też\nkorzyści płynące z wymiany doświadczeń.\n3. Rozumie znaczenie kształtowania się społeczeństwa informacyjnego dla rozwoju kraju."
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1Teleinf1>GK",
+                course_name: "Grafika komputerowa",
+                major_name: "Teleinformatyka",
+                semester: 6,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia pierwszego stopnia/6/Grafika komputerowa (GK).pdf",
+              }
+        - section: "Metody dydaktyczne"
+          content: "1. Wykład: prezentacja multimedialna, uzupełniana aktualnymi przykładami i dodatkowymi\nwyjaśnieniami na tablicy.\n2. Ćwiczenia laboratoryjne: rozwiazywanie zadań, programowanie."
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1Teleinf1>GK",
+                course_name: "Grafika komputerowa",
+                major_name: "Teleinformatyka",
+                semester: 6,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia pierwszego stopnia/6/Grafika komputerowa (GK).pdf",
+              }
 
 items:
   # --- thresholds -----------------------------------------------------------
@@ -622,3 +801,115 @@ items:
     tool_calls: *course_anam
     answer: "Analiza matematyczna ma 30 godzin wykładu i 30 godzin laboratorium."
     expected_faithfulness: 0
+
+  # --- course cards ---------------------------------------------------------
+  - id: karta-literatura-poprawna
+    what_it_tests: "Kontrola: literatura podstawowa z karty przedmiotu w innym zapisie cytowań (inicjały, bez numeru wydania i miasta) — inna forma, nie inny fakt."
+    question: "Jaka jest literatura podstawowa do Statystyki na Cyberbezpieczeństwie?"
+    tool_calls: *card_stat_cyber_literatura
+    answer: "Proszę bardzo — literatura podstawowa do Statystyki: W. Krysicki i in., »Rachunek prawdopodobieństwa i statystyka matematyczna w zadaniach« (PWN, 2012) oraz D. Bobrowski, K. Maćkowiak-Łybacka, »Wybrane metody wnioskowania statystycznego« (Wyd. PP, 2004).\n\nŹródło: https://put.poznan.pl/cards/2026_2027/Cyberbezpieczeństwo/stacjonarne/studia pierwszego stopnia/3/Statystyka (STAT).pdf (dane z 2026-11-09)"
+    expected_answer: "Literatura podstawowa: 1) W. Krysicki i in., „Rachunek prawdopodobieństwa i statystyka matematyczna w zadaniach”, wyd. 8, PWN 2012; 2) D. Bobrowski, K. Maćkowiak-Łybacka, „Wybrane metody wnioskowania statystycznego”, Wyd. PP 2004."
+    expected_data:
+      literatura_podstawowa:
+        - "Krysicki W., Bartos J., Dyczka W., Królikowska K., Wasilewski M.: Rachunek prawdopodobieństwa i statystyka matematyczna w zadaniach, wyd. 8, PWN, Warszawa 2012"
+        - "Bobrowski D., Maćkowiak-Łybacka K.: Wybrane metody wnioskowania statystycznego, Wyd. PP, Poznań 2004"
+    expected_faithfulness: 2
+    expected_correctness: 2
+
+  - id: karta-zmyslona-pozycja-literatury
+    what_it_tests: "Poprawna literatura plus książka, której karta przedmiotu nie wymienia. Bez oczekiwanej correctness: pozycje ponad referencję jej nie obniżają."
+    question: "Jaka jest literatura podstawowa do Statystyki na Cyberbezpieczeństwie?"
+    tool_calls: *card_stat_cyber_literatura
+    answer: "Literatura podstawowa: W. Krysicki i in., »Rachunek prawdopodobieństwa i statystyka matematyczna w zadaniach« (PWN, 2012), D. Bobrowski, K. Maćkowiak-Łybacka, »Wybrane metody wnioskowania statystycznego« (Wyd. PP, 2004), a także A. Nowicki, »Statystyka dla inżynierów« (WNT, 2015)."
+    expected_faithfulness: 0
+
+  - id: karta-tresc-innego-przedmiotu
+    what_it_tests: "Treść z karty Optoelektroniki (widmo diody LED i diody laserowej, lasery z synchronizacją modów) przypisana Komunikacji optycznej, której fragment w danych mówi tylko o metodach dydaktycznych."
+    question: "Na którym przedmiocie na Mikroelektronice i komunikacji cyfrowej uczą o laserach i diodach LED?"
+    tool_calls: *card_mikc_lasery_led
+    answer: "Na Komunikacji optycznej — omawia się tam widmo emisyjne diody LED i diody laserowej oraz lasery z synchronizacją modów."
+    expected_answer: "Na Optoelektronice."
+    expected_data: { przedmiot: "Optoelektronika" }
+    expected_faithfulness: 0
+    expected_correctness: 0
+
+  - id: karta-zly-przedzial-skali-ocen
+    what_it_tests: "Próg na 4,0 wzięty z sąsiedniego przedziału skali ocen z karty przedmiotu (60% zamiast 70%)."
+    question: "Ile procent trzeba zdobyć z Optoelektroniki na ocenę 4,0?"
+    tool_calls: *card_opto_skala_ocen
+    answer: "Na 4,0 z Optoelektroniki trzeba zdobyć co najmniej 60% punktów."
+    expected_answer: "Co najmniej 70% — w skali ocen z karty przedmiotu przedział 70%–79% daje 4,0."
+    expected_data: { ocena: "4,0", procent_punktow: "70%–79%" }
+    expected_faithfulness: 0
+    expected_correctness: 0
+
+  - id: karta-koordynator-zamieniony
+    what_it_tests: "Koordynator i prowadzący zamienieni miejscami — obaj są w danych, ale w odwrotnych rolach."
+    question: "Kto koordynuje Elementy socjologii i etyki, a kto prowadzi zajęcia?"
+    tool_calls: *card_esie_koordynatorzy
+    answer: "Przedmiot koordynuje dr Michał Weres, a zajęcia prowadzi dr Radosław Kot."
+    expected_answer: "Koordynator: dr Radosław Kot; zajęcia prowadzi (wykładowca): dr Michał Weres."
+    expected_data: { koordynator: "dr Radosław Kot", prowadzacy: "dr Michał Weres" }
+    expected_faithfulness: 0
+    expected_correctness: 0
+
+  - id: karta-po-angielsku-parafraza
+    what_it_tests: "Kontrola: wymagania wstępne z polskiej karty przedmiotu przetłumaczone na angielski w odpowiedzi na angielskie pytanie — tłumaczenie to parafraza, nie nowy fakt."
+    question: "What are the prerequisites for Statistics on Artificial Intelligence?"
+    tool_calls: *card_si_stat_wymagania
+    answer: "Sure — for Statystyka (Statistics) on Sztuczna inteligencja you need basic knowledge of mathematical analysis, set algebra and probability theory."
+    expected_answer: "Basic knowledge of mathematical analysis, set algebra and probability theory (prerequisites in the course card of 'Statystyka', Sztuczna inteligencja). English answer; the course name may stay Polish, as stored."
+    expected_data:
+      {
+        wymagania_wstepne: "Podstawowa wiedza w zakresie analizy matematycznej, algebry zbiorów oraz rachunku prawdopodobieństwa",
+      }
+    expected_faithfulness: 2
+    expected_correctness: 2
+
+  - id: karta-uczciwy-brak-progu
+    what_it_tests: "Kontrola: karta przedmiotu nie podaje progu procentowego, a odpowiedź mówi to wprost i przekazuje sposób weryfikacji — sekcja, która by go podała, jest w danych."
+    question: "Ile procent punktów trzeba zdobyć, żeby zaliczyć Elementy socjologii i etyki?"
+    tool_calls: *card_esie_weryfikacja
+    answer: "Niestety karta przedmiotu nie podaje progu procentowego. Efekty są weryfikowane przez rozmowy podczas zajęć i pracę pisemną na wcześniej zatwierdzony temat."
+    expected_answer: "Karta przedmiotu nie podaje progu procentowego — efekty weryfikowane są przez rozmowy podczas zajęć i pracę pisemną na zatwierdzony wcześniej temat. Żadnej liczby procent podawać nie wolno."
+    expected_data:
+      {
+        prog_procentowy: null,
+        sposob_weryfikacji: "Rozmowy podczas zajęć, praca pisemna na zatwierdzony wcześniej temat.",
+      }
+    expected_faithfulness: 2
+    expected_correctness: 2
+
+  - id: karta-zmyslony-prog-procentowy
+    what_it_tests: "Próg 50%, którego karta przedmiotu nie podaje — liczba typowa dla innych kart, tu zmyślona."
+    question: "Ile procent punktów trzeba zdobyć, żeby zaliczyć Elementy socjologii i etyki?"
+    tool_calls: *card_esie_weryfikacja
+    answer: "Żeby zaliczyć Elementy socjologii i etyki, trzeba zdobyć co najmniej 50% punktów z pracy pisemnej."
+    expected_answer: "Karta przedmiotu nie podaje progu procentowego — efekty weryfikowane są przez rozmowy podczas zajęć i pracę pisemną na zatwierdzony wcześniej temat. Żadnej liczby procent podawać nie wolno."
+    expected_data:
+      {
+        prog_procentowy: null,
+        sposob_weryfikacji: "Rozmowy podczas zajęć, praca pisemna na zatwierdzony wcześniej temat.",
+      }
+    expected_faithfulness: 0
+    expected_correctness: 0
+
+  - id: karta-ects-bez-get-course
+    what_it_tests: "ECTS i egzamin podane przy samym wyszukiwaniu w kartach, bez get_course — zgodne z prawdą (correctness 2), ale bez oparcia w danych (faithfulness 0)."
+    question: "Ile ECTS ma przedmiot na Mikroelektronice i komunikacji cyfrowej, na którym uczą o laserach i diodach LED?"
+    tool_calls: *card_mikc_lasery_led
+    answer: "To Optoelektronika — ma 2 ECTS i kończy się egzaminem."
+    expected_answer: "Optoelektronika — 2 ECTS, kończy się egzaminem."
+    expected_data: { przedmiot: "Optoelektronika", ects: 2, assessment_type: "Egzamin" }
+    expected_faithfulness: 0
+    expected_correctness: 2
+
+  - id: karta-lista-jako-pelna
+    what_it_tests: "„Tylko” przy przedmiocie znalezionym w wynikach wyszukiwania — wyniki to najbliższe trafienia, nie wszystkie, więc kompletność jest niepopartym uogólnieniem (faithfulness 1); sam przedmiot jest poprawny (correctness 2)."
+    question: "Na którym przedmiocie na Teleinformatyce programuje się efekty 3D?"
+    tool_calls: *card_teleinf_3d
+    answer: "Efekty 3D programuje się tylko na Grafice komputerowej (semestr 6) — na laboratorium oprogramowuje się tam efekty graficzne w języku shaderów."
+    expected_answer: "Na Grafice komputerowej."
+    expected_data: { przedmiot: "Grafika komputerowa" }
+    expected_faithfulness: 1
+    expected_correctness: 2

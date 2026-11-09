@@ -551,6 +551,36 @@ told how to read them. A claim read this way is "supported":
   one means it is taught in Polish. In a fictional example, "Fotonika stosowana
   jest prowadzona po angielsku" is supported by `"english_name": "Applied
   Photonics"` on that major's row.
+- a course card fragment (a `search_course_cards` result): `section` says what
+  the text is, and `courses` lists every course the fragment belongs to — it
+  supports a claim about any of them, and no claim about a course it does not
+  list. In the section "Koordynatorzy i wykładowcy", the names after
+  "Koordynatorzy:" are the coordinators and those after "Wykładowcy:" the
+  lecturers.
+
+# Course card text
+
+A course card fragment is prose, and the bot may restate it. A claim that says
+what the fragment says in other words — a summary, a shortened list, a
+translation into the answer's language — is "supported". That tolerance covers
+wording only:
+
+- a specific the fragment does not contain — a number, percentage, grade,
+  name, book title or year — is "unsupported" and scores 0, like any invented
+  fact;
+- content of one course attributed to another (one not in that fragment's
+  `courses`) is "contradicted";
+- a coordinator presented as a lecturer, or the other way round, is
+  "contradicted";
+- a course's ECTS, hours or exam are supported only by a `get_course` result,
+  never by a course card fragment;
+- "the card does not give X" is "supported" when the data holds the section
+  that would give it (e.g. the assessment section, for a pass mark) and that
+  section does not contain it;
+- search results are the closest matches, not every match: a list built from
+  them presented as complete ("tylko", "jedyny", "wszystkie", "only") is an
+  unsupported generality, like unsupported advice — score 1 when nothing else
+  is wrong. "M.in." ("among others") with the same list is "supported".
 
 Write the `text` of each claim in Polish, quoting the answer, so the report can
 be cited directly.
@@ -598,6 +628,33 @@ Answer: "Proszę bardzo — wtorek 10:00. Najlepiej wcześniej napisać maila, �
    invented specific; score 1. The point lands on the advice alone. Had the data
    carried a `comment` saying exactly that, it would be "supported" and the
    score would be 2.
+
+## E7
+Data: [{{"section": "Wymagania wstępne", "content": "Znajomość podstaw analizy
+matematycznej oraz fizyki zjawisk falowych.", "courses": [{{"course_name":
+"Akustyka wnętrz"}}]}}]
+Answer: "Przed Akustyką wnętrz trzeba znać podstawy analizy matematycznej i fizyki fal."
+→ a paraphrase of the fragment: "supported"; score 2. An English translation
+   of the same sentence would be "supported" too.
+
+## E8
+Data: [{{"section": "Literatura", "content": "Podstawowa: 1. J. Brzeziński:
+Pogłos i dyfuzja, Wyd. Przykładowe, 2015.", "courses": [{{"course_name":
+"Akustyka wnętrz"}}]}}]
+Answer: "Literatura: J. Brzeziński, »Pogłos i dyfuzja« (2015), a do tego
+klasyczny podręcznik »Podstawy akustyki stosowanej«."
+→ the first book "supported"; the second "unsupported" — a title the fragment
+   does not list; score 0, however standard such a book would be.
+
+## E9
+Question: "Na którym przedmiocie uczą o pogłosie?"
+Data: [{{"section": "Treści programowe", "content": "Pogłos, dyfuzja
+i pochłanianie dźwięku w pomieszczeniach.", "courses": [{{"course_name":
+"Akustyka wnętrz"}}]}}]
+Answer: "O pogłosie uczą tylko na Akustyce wnętrz."
+→ "na Akustyce wnętrz" "supported"; "tylko" claims the results are complete,
+   which search results never show — an unsupported generality; score 1. "M.in.
+   na Akustyce wnętrz" would score 2.
 
 CONVERSATION SO FAR (context only — the bot's earlier answers are not evidence):
 {earlier_turns}
@@ -649,6 +706,13 @@ lower the score for the answer's language alone. Values quoted from the
 database (course names, `assessment_type`, weekday names, people's names) are
 expected to stay Polish in either language; an added English gloss is fine.
 
+Lists — literature, prerequisites, topics from a course card: an item is
+"present" when it is there in any citation format, abbreviation or order (an
+author's initials, a shortened title, the publisher left out); an item of the
+reference the answer leaves out is "missing". Items beyond the reference (e.g.
+supplementary literature) do not lower the score. A percentage or grade from a
+course card is a number and must match exactly.
+
 Follow-ups: the question may continue a conversation ("a dla niestacjonarnych?");
 CONVERSATION SO FAR shows the turns before it, so you know what the question
 refers to. Judge only THE BOT'S ANSWER at the end against the reference; a
@@ -695,6 +759,14 @@ Reference: "5 ECTS, semestr 1, egzamin."
 Answer: "Sure — 5 ECTS in semester 1, and it ends with an exam (`Egzamin`)."
 → all facts "present"; score 2. The question was English, so an English answer
    is correct; the stored value stays Polish.
+
+## E6
+Reference: "Literatura podstawowa: 1) J. Brzeziński, »Pogłos i dyfuzja«, 2015;
+2) A. Lis, »Akustyka sal«, 2019."
+Answer: "Brzeziński J.: Pogłos i dyfuzja (2015) oraz Lis A.: Akustyka sal (2019)."
+→ both books "present"; score 2 — a different citation format is not a
+   different fact. Had the answer named only the first book: the second
+   "missing", score 1.
 
 CONVERSATION SO FAR (context for reading the question):
 {earlier_turns}
