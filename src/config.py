@@ -107,18 +107,14 @@ class DatabaseSettings:
 
 
 @dataclass
-class AgentSettings:
-    """Settings of the model that answers questions (OPENAI_* variables in ``.env``).
+class OpenAISettings:
+    """What the settings of every OpenAI model share: the one API key (``OPENAI_API_KEY``).
 
-    A model accepts either a temperature or a reasoning effort, never both; ``.env.example`` explains which. If the
-    reasoning effort is left blank it becomes ``"none"``, because OpenAI allows tool calling on reasoning models only at
-    that level — and the agent cannot work without tools.
+    Only the key lives here. Model, temperature and reasoning effort stay in each subclass, because each reads its own
+    variables and has its own defaults.
     """
 
     api_key: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
-    model: str = field(default_factory=lambda: os.getenv("OPENAI_MODEL", "gpt-6-luna"))
-    temperature: float | None = field(default_factory=lambda: _optional_float("OPENAI_TEMPERATURE"))
-    reasoning_effort: str | None = field(default_factory=lambda: _reasoning_effort("OPENAI_REASONING_EFFORT") or "none")
 
     def require_api_key(self) -> str:
         """Return the OpenAI API key, or fail with a clear message if it is missing.
@@ -138,30 +134,39 @@ class AgentSettings:
 
 
 @dataclass
-class JudgeSettings:
+class AgentSettings(OpenAISettings):
+    """Settings of the model that answers questions (OPENAI_* variables in ``.env``).
+
+    A model accepts either a temperature or a reasoning effort, never both; ``.env.example`` explains which. If the
+    reasoning effort is left blank it becomes ``"none"``, because OpenAI allows tool calling on reasoning models only at
+    that level — and the agent cannot work without tools.
+    """
+
+    model: str = field(default_factory=lambda: os.getenv("OPENAI_MODEL", "gpt-6-luna"))
+    temperature: float | None = field(default_factory=lambda: _optional_float("OPENAI_TEMPERATURE"))
+    reasoning_effort: str | None = field(default_factory=lambda: _reasoning_effort("OPENAI_REASONING_EFFORT") or "none")
+
+
+@dataclass
+class EmbeddingSettings(OpenAISettings):
+    """Settings of the model that turns course card sections and search queries into vectors (``EMBEDDING_MODEL``).
+
+    Stored vectors are only comparable with vectors of the same model, so changing the model means recomputing every
+    stored one — the next ingestion run does that by itself. The search needs the key (``require_api_key``), but
+    ingestion runs without it: the embedding step is then skipped.
+    """
+
+    model: str = field(default_factory=lambda: _optional("EMBEDDING_MODEL") or "text-embedding-3-large")
+
+
+@dataclass
+class JudgeSettings(OpenAISettings):
     """Settings of the model that scores answers during evaluation (JUDGE_* in ``.env``).
 
     Kept separate from ``AgentSettings`` so the judge can be a different model. Unlike the agent, a blank reasoning
     effort stays blank (the model's own default is used): the judge does not call tools, so it has no such limit.
     """
 
-    api_key: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
     model: str = field(default_factory=lambda: os.getenv("JUDGE_MODEL", "gpt-6-luna"))
     temperature: float | None = field(default_factory=lambda: _optional_float("JUDGE_TEMPERATURE"))
     reasoning_effort: str | None = field(default_factory=lambda: _reasoning_effort("JUDGE_REASONING_EFFORT"))
-
-    def require_api_key(self) -> str:
-        """Return the OpenAI API key, or fail with a clear message if it is missing.
-
-        Without this check a missing key would only surface later, as a
-        harder-to-read authentication error from the OpenAI library.
-
-        Returns:
-            str: The OpenAI API key.
-
-        Raises:
-            RuntimeError: OPENAI_API_KEY is missing or empty.
-        """
-        if not self.api_key:
-            raise RuntimeError("OPENAI_API_KEY is not set — copy it into .env (see .env.example).")
-        return self.api_key

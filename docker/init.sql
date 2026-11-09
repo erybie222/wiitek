@@ -128,6 +128,15 @@ CREATE TABLE IF NOT EXISTS course_card_sections (
     -- Position of the piece within its section; 0 while sections are not split.
     chunk_index INT NOT NULL DEFAULT 0,
     content TEXT NOT NULL,
+    -- The three below are set together by the embedding step and stay NULL
+    -- until it runs (it is skipped without an OpenAI key). content_hash is
+    -- the sha256 of the text the vector was computed from: a "Przedmiot /
+    -- Sekcja" header plus content, so identical copies (PE) share one vector.
+    -- No fixed dimension: vectors are only compared within one
+    -- embedding_model, and without an index nothing needs it.
+    content_hash TEXT,
+    embedding vector,
+    embedding_model TEXT,
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_course_card_section_course FOREIGN KEY (course_code, major_id, semester)
         REFERENCES courses (course_code, major_id, semester) ON DELETE CASCADE,

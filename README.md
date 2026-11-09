@@ -24,7 +24,8 @@ PostgreSQL:
 | Informator PP (the university's staff directory) | faculty units, staff, administrative functions, office hours                    | `src/scrapers/informator_staff_office_hours.py` |
 | Course cards (PDFs linked from the catalogs)     | each course's prerequisites, topics, how it is passed, literature, coordinators | `src/scrapers/pdf_course_cards.py`              |
 
-The course cards are stored but not used by the bot yet: searching them is the next step.
+The course cards are stored with a vector of each section (OpenAI embeddings) but not used by the
+bot yet: a search tool for them is the next step.
 
 **Answering (online).** An LLM agent (LangChain + OpenAI) receives the question and answers it
 by calling read-only database tools — one tool per table (`src/database/repository.py`). It does
@@ -47,7 +48,8 @@ Python 3.12 or newer.
    cp .env.example .env
    ```
    `.env.example` explains every setting. The database values can stay as they are. To chat with
-   the bot or run the evaluation you need an `OPENAI_API_KEY`; ingestion works without one.
+   the bot or run the evaluation you need an `OPENAI_API_KEY`. Ingestion works without one, but
+   then skips computing the course card vectors.
 3. Start the database:
    ```bash
    docker-compose -f docker/docker-compose.yml --env-file .env up -d
@@ -65,10 +67,12 @@ uv run src/run_ingestion.py
 ```
 
 This fills the database in a single transaction: majors and their ECTS courses, admission
-thresholds, faculty units and staff from Informator, then the course cards. The first run
-downloads every course card PDF into `data/course_cards/` (several hundred files with pauses between
-them, so over an hour); later runs read them from there and take a few minutes. A course card
-that cannot be downloaded or read is skipped and listed at the end. Before running it:
+thresholds, faculty units and staff from Informator, then the course cards and a vector of each
+of their sections. The first run downloads every course card PDF into `data/course_cards/`
+(several hundred files with pauses between them, so over an hour); later runs read them from there
+and take a few minutes. A course card that cannot be downloaded or read is skipped and listed at
+the end. Vectors are computed only for new or changed text, so later runs cost next to nothing.
+Before running it:
 
 - Put the thresholds PDF in `data/`, named `progi punktowe <anything>.pdf` (e.g.
   `progi punktowe 2025-2021.pdf`) — exactly one such file. The years are read from the table
@@ -176,6 +180,7 @@ src/
   agent.py               builds the agent and asks it a question
   templates.py           all prompts: the agent's and the judges'
   config.py              settings read from .env
+  embeddings.py          vectors of the course card sections
   scrapers/              one scraper per data source
   database/
     queries/             all SQL, one file per table

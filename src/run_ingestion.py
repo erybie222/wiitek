@@ -7,14 +7,18 @@ Steps, in order (later steps depend on earlier ones):
 3. admission thresholds from the PDF — matched to the majors from step 2 by name;
 4. faculty units, staff, their functions and office hours from Informator;
 5. the sections of every course's card PDF — read from the links stored in
-   step 2, downloaded once into ``data/course_cards/`` and parsed from there.
+   step 2, downloaded once into ``data/course_cards/`` and parsed from there;
+6. a vector for every section from step 5, for the course card search —
+   computed only for new or changed text.
 
 Everything runs in one transaction that is committed at the end, so a crash
 leaves the database as it was. Two steps are exceptions, reported and skipped
 instead of undoing the rest: step 3 when the PDF is missing or not laid out as
 expected, and step 4, which needs a browser cookie that often expires (staff
 saved before the failure are kept). Step 5 skips, one by one, the course cards it
-cannot download or read, keeping their stored sections.
+cannot download or read, keeping their stored sections. Step 6 is skipped
+without an OpenAI key and stops at an API error, keeping the vectors computed
+so far; the next run computes the missing ones.
 
 Do not commit partway through: step 2 deletes courses and step 4 staff and
 units that this run did not write, and both recognise them by a
@@ -27,6 +31,7 @@ from datetime import date
 from database.connection import close_pool, get_db_connection
 from database.queries.faculties import insert_wiit_faculty
 from database.queries.majors import upsert_major
+from embeddings import embed_course_card_sections
 from scrapers.html_ects import ingest_ects_catalog
 from scrapers.informator_staff_office_hours import ingest_informator
 from scrapers.pdf_course_cards import ingest_course_cards
@@ -150,6 +155,9 @@ def main() -> None:
             # an hour) and the Informator cookie could expire meanwhile. Needs
             # the courses from step 2: it reads their syllabus links.
             ingest_course_cards(cursor)
+
+            # Needs the sections just stored. Skips itself without an API key.
+            embed_course_card_sections(cursor)
     finally:
         close_pool()
 
