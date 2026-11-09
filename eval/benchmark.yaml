@@ -1013,3 +1013,61 @@ sylabusy:
         expected_sections:
           - { course_code: "S1Cybez1>STAT", section: "Koordynatorzy i wykładowcy" }
           - { course_code: "S1SI1E>STAT", section: "Koordynatorzy i wykładowcy" }
+
+  - id: sylabus-bez-nazwy-efekty-3d-teleinformatyka
+    question: "Na którym przedmiocie na Teleinformatyce programuje się efekty 3D?"
+    entities: { kierunek: "Teleinformatyka", przedmiot: "Grafika komputerowa" }
+    expected_data: { przedmiot: "Grafika komputerowa" }
+    expected_answer: "Na Grafice komputerowej."
+    edge_case: "pytanie bez nazwy przedmiotu i innymi słowami niż sylabus — „efekty 3D”, a w sylabusie „grafika trójwymiarowa” i „efekty graficzne za pomocą języka shader'ów”"
+    notes: >
+      Sprawdzone 2026-11-09 na wszystkich sylabusach Teleinformatyki w bazie:
+      programowanie grafiki 3D ma tylko Grafika komputerowa (semestr 6,
+      obowiązkowa) — laboratorium „Oprogramowanie efektów graficznych za
+      pomocą języka shader'ów”, OpenGL/WebGL. Przesyłanie danych
+      multimedialnych i Telekomunikacja multimedialna (semestr 6, obieralne)
+      mają w efektach uczenia się wspólne zdanie „implementować w systemach
+      multimedialnych najczęściej stosowane efekty grafiki trójwymiarowej”,
+      ale ich treści dotyczą transmisji multimediów. Wymienienie ich obok
+      Grafiki komputerowej, jako przedmiotów z takim efektem uczenia się, nie
+      jest błędem; podanie ich zamiast niej jest. Procesory GPU (Architektura
+      systemów komputerowych, Urządzenia w systemach teleinformatycznych) i
+      grafika w PHP (WWW i języki skryptowe) to nie efekty 3D.
+    source: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia%20pierwszego%20stopnia/6/Grafika%20komputerowa%20%28GK%29.pdf"
+    expected_calls:
+      - tool: search_course_cards
+        expected_sections:
+          - { course_code: "S1Teleinf1>GK", section: "Treści programowe" }
+          - { course_code: "S1Teleinf1>GK", section: "Przedmiotowe efekty uczenia się" }
+          - { course_code: "S1Teleinf1>GK", section: "Cel przedmiotu" }
+
+  - id: sylabus-mieszane-ects-lasery-led-mikroelektronika
+    question: "Ile ECTS ma przedmiot na Mikroelektronice i komunikacji cyfrowej, na którym uczą o laserach i diodach LED?"
+    entities: { kierunek: "Mikroelektronika i komunikacja cyfrowa", przedmiot: "Optoelektronika" }
+    expected_data: { przedmiot: "Optoelektronika", ects: 2, assessment_type: "Egzamin" }
+    expected_answer: "Optoelektronika — 2 ECTS, kończy się egzaminem."
+    edge_case: "pytanie mieszane — przedmiot znaleziony w sylabusach, ECTS i forma zaliczenia z get_course, nie z sylabusu"
+    notes: >
+      Sprawdzone 2026-11-09 na wszystkich sylabusach kierunku w bazie: lasery i
+      diody LED razem ma tylko Optoelektronika (semestr 5, obowiązkowa) —
+      „Widmo emisyjne diody LED i diody laserowej”, laboratorium LED/LASER.
+      Lasery bez LED: Komunikacja optyczna (w efektach uczenia się) i
+      Bezpieczeństwo sprzętowe i kryptografia nowej generacji (ataki
+      promieniowaniem laserowym); LED bez laserów: Aplikacje sprzętowe
+      mikrokontrolerów i mikrokomputerów. Tylko „Tematyka zajęć” wymienia
+      oba, stąd jedna oczekiwana sekcja — efekty uczenia się Optoelektroniki
+      mają tę samą listę elementów („fotodiody, lasery”) co Komunikacja
+      optyczna, więc nie odróżniają tych przedmiotów. Pierwsza wersja pytania
+      („o laserach i światłowodach”) miała dwie odpowiedzi: Komunikacja
+      optyczna (semestr 7, obieralna, 3 ECTS) uczy o światłowodach więcej niż
+      Optoelektronika. ECTS i egzamin sprawdzone w katalogu ECTS: wiersz
+      S1MiKC2>OPTO, 2 ECTS, wykład „15h (E)”.
+    source:
+      - "https://put.poznan.pl/cards/2026_2027/Mikroelektronika%20i%20komunikacja%20cyfrowa/stacjonarne/studia%20pierwszego%20stopnia/5/Optoelektronika%20%28OPTO%29.pdf"
+      - "https://put.poznan.pl/karty-ects/2026_2027/Mikroelektronika%20i%20komunikacja%20cyfrowa/stacjonarne/studia%20pierwszego%20stopnia"
+    expected_calls:
+      - tool: search_course_cards
+        expected_sections:
+          - { course_code: "S1MiKC2>OPTO", section: "Tematyka zajęć" }
+      - tool: get_course
+        args: { major_name: "Mikroelektronika i komunikacja cyfrowa", course_name: "Optoelektronika" }
