@@ -186,6 +186,89 @@ def course_card_section_exists(cursor: DBCursor, course_code: str, section: str)
     return cursor.fetchone()[0]
 
 
+def search_course_cards(
+    cursor: DBCursor,
+    query_embedding: str,
+    embedding_model: str,
+    course_name: str | None = None,
+    major_name: str | None = None,
+    semester: int | None = None,
+    section: str | None = None,
+    limit: int = 8,
+) -> list[dict]:
+    """Find the course card fragments closest in meaning to a query, within optional filters.
+
+    The filters narrow the rows first; only those get a distance to the query. Fragments with the same text (the copies
+    of a faculty-wide course card, like PE) come back once, listing every course they belong to, and ``limit`` counts
+    those groups — otherwise the copies of one fragment could fill every place. Only vectors of ``embedding_model`` are
+    compared; a section without one is not found.
+
+    Args:
+        cursor: Database cursor to run the SQL on.
+        query_embedding: The query's vector as a pgvector literal (``vector_literal``), from the same model.
+        embedding_model: The model the stored vectors must come from, e.g. "text-embedding-3-large".
+        course_name: Optional substring of the course name (case- and diacritic-insensitive), e.g. "Algebra".
+        major_name: Optional major, Polish or English name (case- and diacritic-insensitive).
+        semester: Optional semester (1..8).
+        section: Optional section name (case- and diacritic-insensitive), e.g. "Literatura".
+        limit: How many fragments to return at most.
+
+    Returns:
+        list[dict]: Fragments, closest first. Each dict: ``section`` (str), e.g. "Literatura". ``content`` (str).
+            ``last_updated`` (str) — ISO timestamp of when the text was read from the PDF. ``courses`` (list[dict]) —
+            every course the fragment belongs to within the filters, each ``course_code``, ``course_name``,
+            ``major_name``, ``semester`` and ``source_url`` (the PDF the text was read from). Empty when nothing matches
+            the filters.
+    """
+    course_pattern = f"%{course_name}%" if course_name is not None else None
+
+    cursor.execute(
+        """
+        WITH matching AS (
+            SELECT s.section, s.content, s.content_hash, s.last_updated, s.course_code, c.name AS course_name,
+                   m.polish_name AS major_name, s.semester, s.source_url,
+                   s.embedding <=> %s::vector AS distance
+            FROM course_card_sections s
+            JOIN courses c USING (course_code, major_id, semester)
+            JOIN majors m ON m.id = s.major_id
+            WHERE s.embedding_model = %s AND s.embedding IS NOT NULL
+              AND (%s::text IS NULL OR unaccent(c.name) ILIKE unaccent(%s::text))
+              AND (%s::text IS NULL
+                   OR LOWER(unaccent(m.polish_name)) = LOWER(unaccent(%s::text))
+                   OR LOWER(unaccent(m.english_name)) = LOWER(unaccent(%s::text)))
+              AND (%s::int IS NULL OR s.semester = %s::int)
+              AND (%s::text IS NULL OR LOWER(unaccent(s.section)) = LOWER(unaccent(%s::text)))
+        )
+        -- One row per distinct text: its hash covers course name, section and content.
+        SELECT section, any_value(content), max(last_updated),
+               json_agg(json_build_object(
+                   'course_code', course_code, 'course_name', course_name, 'major_name', major_name,
+                   'semester', semester, 'source_url', source_url
+               ) ORDER BY major_name, semester, course_code)
+        FROM matching
+        GROUP BY section, content_hash
+        ORDER BY min(distance), section
+        LIMIT %s;
+    """,
+        (
+            query_embedding,
+            embedding_model,
+            course_pattern,
+            course_pattern,
+            major_name,
+            major_name,
+            major_name,
+            semester,
+            semester,
+            section,
+            section,
+            limit,
+        ),
+    )
+    columns = ("section", "content", "last_updated", "courses")
+    return [row_to_dict(columns, row) for row in cursor.fetchall()]
+
+
 def delete_course_card_sections(cursor: DBCursor) -> None:
     """Delete every course card piece (used by ``clean_db.py``).
 

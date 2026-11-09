@@ -724,7 +724,7 @@ powitanie_i_zakres:
   - id: powitanie-kim-jestes
     question: "Cześć, co potrafisz?"
     expected_data: null
-    expected_answer: "Przedstawia się jako WIiTek i w jednym krótkim akapicie podaje zakres: progi punktowe, plany studiów (przedmioty i ECTS), kadra i jednostki, konsultacje. Bez sekcji źródła, bez rozpisanej listy funkcji, bez zmyślonych możliwości (np. planu zajęć czy stypendiów)."
+    expected_answer: "Przedstawia się jako WIiTek i w jednym krótkim akapicie podaje zakres: progi punktowe, plany studiów (przedmioty i ECTS), treść przedmiotów z ich kart, kadra i jednostki, konsultacje. Bez sekcji źródła, bez rozpisanej listy funkcji, bez zmyślonych możliwości (np. planu zajęć czy stypendiów)."
     edge_case: "pytanie o samego bota — jedyny przypadek, w którym poprawna odpowiedź nie pochodzi z bazy"
     notes: "Mierzy reguly tonu z SYSTEM_PROMPT (P8): autoprezentacja, zwiezlosc, zero wywolan. Zmyslenie zakresu jest tu realnym ryzykiem — obietnica planu zajec to dla uzytkownika gorsze niz odmowa."
     expected_calls: []

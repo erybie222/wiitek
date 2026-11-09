@@ -4,7 +4,8 @@
 
 A chatbot that answers questions about studying at the Faculty of Computing and
 Telecommunications (WIiT) of Poznań University of Technology: admission thresholds,
-study plans (courses and ECTS points) and staff office hours.
+study plans (courses and ECTS points), what each course covers and how it is passed, and staff
+office hours.
 
 The number one rule the bot is built around: **it never makes up a number.** Every figure in an
 answer comes from the database together with its source and date. If the database has no
@@ -24,15 +25,16 @@ PostgreSQL:
 | Informator PP (the university's staff directory) | faculty units, staff, administrative functions, office hours                    | `src/scrapers/informator_staff_office_hours.py` |
 | Course cards (PDFs linked from the catalogs)     | each course's prerequisites, topics, how it is passed, literature, coordinators | `src/scrapers/pdf_course_cards.py`              |
 
-The course cards are stored with a vector of each section (OpenAI embeddings) but not used by the
-bot yet: a search tool for them is the next step.
+Each course card section is stored with a vector (OpenAI embeddings), so it can be found by
+meaning.
 
 **Answering (online).** An LLM agent (LangChain + OpenAI) receives the question and answers it
-by calling read-only database tools — one tool per table (`src/database/repository.py`). It does
-not search text by similarity: structured facts like thresholds or hours are always read with
-SQL, because similarity search is unreliable on numbers. The agent's rules (cite the source, ask
-when a name is ambiguous, refuse questions outside WIiT) are in its system prompt in
-`src/templates.py`.
+by calling read-only database tools — one tool per table (`src/database/repository.py`).
+Structured facts like thresholds, ECTS or hours are always read with SQL, because similarity
+search is unreliable on numbers. Only the course cards' text is searched by similarity, after
+filtering by course, major, semester or section, so "which course covers 3D graphics?" finds the
+right card even when it uses other words. The agent's rules (cite the source, ask when a name is
+ambiguous, refuse questions outside WIiT) are in its system prompt in `src/templates.py`.
 
 ## Setup
 

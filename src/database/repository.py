@@ -26,6 +26,9 @@ from database.connection import get_db_connection
 from database.queries.admission_thresholds import (
     get_admission_threshold as _get_admission_threshold,
 )
+from database.queries.course_card_sections import (
+    search_course_cards as _search_course_cards,
+)
 from database.queries.courses import get_course as _get_course
 from database.queries.departments import get_department as _get_department
 from database.queries.faculties import get_faculties as _get_faculties
@@ -33,6 +36,7 @@ from database.queries.majors import get_major as _get_major
 from database.queries.office_hours import get_office_hour as _get_office_hour
 from database.queries.staff import get_staff as _get_staff
 from database.queries.staff_functions import get_staff_function as _get_staff_function
+from embeddings import get_embedder, vector_literal
 
 
 @tool(parse_docstring=True, response_format="content_and_artifact")
@@ -206,11 +210,57 @@ def get_office_hour(staff_id: int, day_of_week: str | None = None) -> tuple[str,
     return json.dumps(rows, ensure_ascii=False), rows
 
 
+@tool(parse_docstring=True, response_format="content_and_artifact")
+def search_course_cards(
+    query: str,
+    course_name: str | None = None,
+    major_name: str | None = None,
+    semester: int | None = None,
+    section: str | None = None,
+) -> tuple[str, list[dict]]:
+    """Search the course cards (karty przedmiotów): the document describing each course of a major's study plan.
+
+    Use it for what a course covers and how it runs: its topics, prerequisites, learning outcomes, how it is assessed
+    and graded, teaching methods, literature, coordinators and lecturers. Users may call a course card a "sylabus". It
+    also answers questions that name no course ("on which course do they teach..."): leave course_name unset and put the
+    topic in query. ECTS, hours and whether a course ends with an exam always come from get_course, never from here.
+
+    A course named without its major needs no major lookup first: search with course_name alone, and each result says
+    which majors the course is on.
+
+    Each result is one fragment — one section of one card — with the courses it belongs to; a fragment listing several
+    courses (a card shared across majors) is true for each of them. Results are only the closest matches, not every
+    match: a list of courses built from them is "among others", never complete. An empty result does not mean the course
+    does not exist: with course_name set, search again without it (the name in query) before concluding anything, then
+    check with get_course.
+
+    Args:
+        query: What to look for, in your own words: the topic, or the kind of information the user wants.
+        course_name: Optional, for a course the user named: a substring of its Polish catalog name (case- and
+            diacritic-insensitive). It does not translate, so leave it unset — and put the name in query — for a name in
+            another language, an abbreviation or a group of electives; the search matches meaning across languages.
+        major_name: Optional major: Polish name, or the English name of an English-taught major (case- and
+            diacritic-insensitive).
+        semester: Optional semester (1..8).
+        section: Optional section, exactly one of "Wymagania wstępne", "Cel przedmiotu", "Przedmiotowe efekty uczenia
+            się", "Metody weryfikacji efektów uczenia się i kryteria oceny", "Treści programowe", "Tematyka zajęć",
+            "Metody dydaktyczne", "Literatura", "Koordynatorzy i wykładowcy". Leave it unset when unsure which one holds
+            the answer.
+    """
+    embedder = get_embedder()
+    query_embedding = vector_literal(embedder.embed_query(query))
+    with get_db_connection() as conn, conn.cursor() as cursor:
+        # Compared only with vectors of the model that embedded the query.
+        rows = _search_course_cards(cursor, query_embedding, embedder.model, course_name, major_name, semester, section)
+    return json.dumps(rows, ensure_ascii=False), rows
+
+
 TOOLS = [
     get_faculties,
     get_major,
     get_admission_threshold,
     get_course,
+    search_course_cards,
     get_department,
     get_staff,
     get_staff_function,

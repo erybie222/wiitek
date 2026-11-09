@@ -60,6 +60,16 @@ ALLOWED_VOCABULARY = {
     "part-time",
     "bachelor-of-engineering",  # fixed codes
     "wiit",
+    # Course card section names: the `section` vocabulary of search_course_cards, listed in its docstring.
+    "wymagania wstepne",
+    "cel przedmiotu",
+    "przedmiotowe efekty uczenia sie",
+    "metody weryfikacji efektow uczenia sie i kryteria oceny",
+    "tresci programowe",
+    "tematyka zajec",
+    "metody dydaktyczne",
+    "literatura",
+    "koordynatorzy i wykladowcy",
 }
 
 # Matches what is worth looking for inside a reference answer: decimals,
