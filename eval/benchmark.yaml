@@ -1071,3 +1071,206 @@ karty_przedmiotow:
           - { course_code: "S1MiKC2>OPTO", section: "Tematyka zajęć" }
       - tool: get_course
         args: { major_name: "Mikroelektronika i komunikacja cyfrowa", course_name: "Optoelektronika" }
+
+  - id: karta-mieszane-ects-literatura-sygnaly-teleinformatyka
+    question: "Ile ECTS mają Sygnały i systemy na Teleinformatyce i z jakiej książki się do nich uczyć?"
+    entities: { kierunek: "Teleinformatyka", przedmiot: "Sygnały i systemy", sekcja: "Literatura" }
+    expected_data:
+      course_code: "S1Teleinf1>SiS"
+      semester: 3
+      ects: 6
+      is_obligatory: true
+      hours_lecture: 30
+      hours_classes: 15
+      hours_lab: 30
+      assessment_type: "Egzamin"
+      literatura_podstawowa: ["J. Szabatin, Podstawy teorii sygnałów, WKiŁ, 2007"]
+    expected_answer: "6 ECTS, egzamin. Literatura podstawowa: J. Szabatin, „Podstawy teorii sygnałów”, WKiŁ 2007."
+    edge_case: "pytanie mieszane z nazwanym przedmiotem — ECTS i forma zaliczenia z get_course, literatura z karty przedmiotu; odpowiedź potrzebuje obu połówek"
+    notes: "Literatura uzupełniająca (J. Wojciechowski, „Sygnały i Systemy”; K. Snopek, J. Wojciechowski, „Sygnały i systemy. Zbiór zadań”) nie jest wymagana, ale jej podanie nie jest błędem. Przedmiot jest tylko na Teleinformatyce (semestr 3, obowiązkowy)."
+    source:
+      - "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia%20pierwszego%20stopnia/3/Sygna%C5%82y%20i%20systemy%20%28SiS%29.pdf"
+      - "https://put.poznan.pl/karty-ects/2026_2027/Teleinformatyka/stacjonarne/studia%20pierwszego%20stopnia"
+    expected_calls:
+      - tool: get_course
+        args: { major_name: "Teleinformatyka", course_name: "Sygnały i systemy" }
+      - tool: search_course_cards
+        expected_sections:
+          - { course_code: "S1Teleinf1>SiS", section: "Literatura" }
+
+  - id: karta-mieszane-edge-programowanie-liniowe-dwa-kierunki
+    question: "Ile ECTS ma przedmiot, na którym uczą programowania liniowego?"
+    entities:
+      {
+        przedmiot: "Badania operacyjne",
+        kierunki: ["Informatyka", "Sztuczna inteligencja"],
+        temat: "programowanie liniowe",
+      }
+    expected_data:
+      Informatyka:
+        {
+          course_code: "S1Inf1>BOP",
+          semester: 3,
+          ects: 4,
+          is_obligatory: true,
+          hours_lecture: 24,
+          hours_classes: 24,
+          assessment_type: "Zaliczenie z ocena",
+        }
+      "Sztuczna inteligencja":
+        {
+          course_code: "S1SI1E>BOP",
+          semester: 5,
+          ects: 5,
+          is_obligatory: false,
+          hours_lecture: 30,
+          hours_lab: 30,
+          assessment_type: "Egzamin",
+        }
+    expected_answer: null
+    expected_behavior: >
+      Programowania liniowego uczą Badania operacyjne, a ten przedmiot jest na
+      dwóch kierunkach, z różnymi ECTS i formą zaliczenia. Poprawnie: podać oba
+      — Informatyka: 4 ECTS, zaliczenie z oceną; Sztuczna inteligencja: 5 ECTS,
+      egzamin — albo powiedzieć, że to Badania operacyjne na dwóch kierunkach,
+      i dopytać, o który chodzi. Semestr i to, czy przedmiot jest obowiązkowy,
+      nie są wymagane. Błąd: podać ECTS jednego kierunku jako jedyną odpowiedź.
+    edge_case: "pytanie mieszane bez kierunku — przedmiot znaleziony w kartach przedmiotów jest na dwóch kierunkach, z różnymi ECTS i formą zaliczenia"
+    notes: >
+      Sprawdzone 2026-11-10 SQL-em na wszystkich kartach przedmiotów w bazie, w
+      każdej odmianie i kolejności słów: programowanie liniowe jest tylko w
+      Badaniach operacyjnych (Informatyka: Tematyka zajęć, Treści programowe;
+      Sztuczna inteligencja: Cel przedmiotu, Tematyka zajęć, Treści
+      programowe). Pozostałe przedmioty z optymalizacji mają programowanie
+      nieliniowe (Algebra i podstawy metod optymalizacji dla ICT) albo regresję
+      liniową (Elementy optymalizacji wypukłej, Metody optymalizacji dla
+      analizy danych). ECTS i godziny sprawdzone na pierwszych stronach obu
+      kart przedmiotów; formy zaliczenia to wiersze katalogu ECTS z bazy
+      (ingestia 2026-11-09). Karta przedmiotu na SI pisze o zaliczeniu wykładu
+      na ostatnim wykładzie, a katalog oznacza egzamin — prompt każe brać
+      formę zaliczenia z get_course.
+    source:
+      - "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia/3/Badania%20operacyjne%20%28BOP%29.pdf"
+      - "https://put.poznan.pl/cards/2026_2027/Sztuczna%20inteligencja_Artificial%20Intelligence/stacjonarne/studia%20pierwszego%20stopnia/5/przedmioty%20obieralne/Badania%20operacyjne%20%28BOP%29.pdf"
+    # expected_calls note: One search, not one per major — a search without major_name returns both
+    #   cards, and layer 1 counts calls by tool name, so two expected searches would fail an agent that
+    #   rightly searched once. The two get_course calls show that both majors were looked up.
+    expected_calls:
+      - tool: search_course_cards
+        expected_sections:
+          - { course_code: "S1Inf1>BOP", section: "Tematyka zajęć" }
+          - { course_code: "S1Inf1>BOP", section: "Treści programowe" }
+          - { course_code: "S1SI1E>BOP", section: "Cel przedmiotu" }
+          - { course_code: "S1SI1E>BOP", section: "Tematyka zajęć" }
+          - { course_code: "S1SI1E>BOP", section: "Treści programowe" }
+      - tool: get_course
+        args: { major_name: "Informatyka", course_name: "Badania operacyjne" }
+      - tool: get_course
+        args: { major_name: "Sztuczna inteligencja", course_name: "Badania operacyjne" }
+    alternative_routes:
+      - why: "SYSTEM_PROMPT pozwala przy tej samej nazwie przedmiotu na dwóch kierunkach dopytać, o który
+          chodzi, zamiast podawać oba — wtedy get_course nie jest jeszcze potrzebny."
+        calls:
+          - tool: search_course_cards
+            expected_sections:
+              - { course_code: "S1Inf1>BOP", section: "Tematyka zajęć" }
+              - { course_code: "S1Inf1>BOP", section: "Treści programowe" }
+              - { course_code: "S1SI1E>BOP", section: "Cel przedmiotu" }
+              - { course_code: "S1SI1E>BOP", section: "Tematyka zajęć" }
+              - { course_code: "S1SI1E>BOP", section: "Treści programowe" }
+
+  - id: karta-mieszane-koordynator-konsultacje-przetwarzanie-rownolegle
+    question: "Kto koordynuje Przetwarzanie równoległe na Informatyce i kiedy ma konsultacje?"
+    entities:
+      {
+        kierunek: "Informatyka",
+        przedmiot: "Przetwarzanie równoległe",
+        sekcja: "Koordynatorzy i wykładowcy",
+        imie: "Rafał",
+        nazwisko: "Walkowiak",
+      }
+    expected_data:
+      koordynator: "dr inż. Rafał Walkowiak"
+      konsultacje:
+        - {
+            day_of_week: "wtorek",
+            start_time: "11:20",
+            end_time: "12:20",
+            location: "A23a 2.6.6",
+            comment: "konsultacje odbywają się w dni zajęć dydaktycznych",
+          }
+        - {
+            day_of_week: "wtorek",
+            start_time: "16:50",
+            end_time: "17:20",
+            location: "A23a 2.6.6",
+            comment: "konsultacje odbywają się w dni zajęć dydaktycznych",
+          }
+    expected_answer: "Koordynator: dr inż. Rafał Walkowiak. Konsultacje we wtorki 11:20–12:20 i 16:50–17:20, sala A23a 2.6.6 (komentarz: konsultacje odbywają się w dni zajęć dydaktycznych)."
+    edge_case: "pytanie mieszane: karta przedmiotu → kadra → konsultacje — osobę z karty trzeba odnaleźć w get_staff, zanim da się sprawdzić jej konsultacje"
+    notes: "Karta przedmiotu ma jednego koordynatora i pustą kolumnę „Wykładowcy”. W bazie jest jedna osoba o nazwisku Walkowiak (Zakład Teorii Algorytmów i Systemów Programowania), więc get_staff nie wymaga dopytania."
+    source:
+      - "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia/6/Przetwarzanie%20r%C3%B3wnoleg%C5%82e%20%28PROW%29.pdf"
+      - *informator
+    expected_calls:
+      - tool: search_course_cards
+        expected_sections:
+          - { course_code: "S1Inf1>PROW", section: "Koordynatorzy i wykładowcy" }
+      - tool: get_staff
+        args: { last_name: "Walkowiak", first_name: "Rafał" }
+      - tool: get_office_hour
+        args: { staff_id: "$prev.id" }
+
+  - id: karta-mieszane-obieralne-semestr3-informatyka
+    question: "Jakie przedmioty obieralne są na 3. semestrze Informatyki i czego się na nich uczy?"
+    entities: { kierunek: "Informatyka", semestr: 3, przedmioty: ["Mikroelektronika", "Podstawy robotyki"] }
+    expected_data:
+      Mikroelektronika:
+        course_code: "S1Inf1>MIKRO"
+        semester: 3
+        ects: 3
+        is_obligatory: false
+        hours_lecture: 24
+        hours_lab: 20
+        assessment_type: "Zaliczenie z ocena"
+        tematy:
+          - "związek warstwy sprzętowej (tranzystory, bramki CMOS) z wykonywaniem oprogramowania"
+          - "otwarte architektury mikroprocesorowe (RISC-V)"
+          - "modelowanie i symulacja układów elektronicznych (LTspice)"
+          - "układy reprogramowalne (FPGA)"
+          - "bezpieczeństwo warstwy sprzętowej (trojany sprzętowe)"
+      "Podstawy robotyki":
+        course_code: "S1Inf1>ROBOT"
+        semester: 3
+        ects: 3
+        is_obligatory: false
+        hours_lecture: 24
+        hours_lab: 20
+        assessment_type: "Zaliczenie z ocena"
+        tematy:
+          - "kinematyka i dynamika manipulatorów"
+          - "proste i odwrotne zadanie kinematyki"
+          - "języki programowania robotów"
+          - "roboty mobilne"
+    expected_answer: "Dwa: Mikroelektronika (3 ECTS, zaliczenie z oceną) — związek sprzętu (tranzystory, bramki CMOS) z wykonywaniem oprogramowania, RISC-V, symulacja układów w LTspice, FPGA; Podstawy robotyki (3 ECTS, zaliczenie z oceną) — kinematyka i dynamika manipulatorów, programowanie robotów, roboty mobilne. Wystarczą po dwa–trzy główne tematy z karty każdego przedmiotu; inne tematy z tej samej karty też są poprawne."
+    edge_case: "pytanie mieszane w odwrotnej kolejności — lista z get_course, potem karta przedmiotu każdego z przedmiotów; opis przedmiotu wywiedziony z samej nazwy, bez karty, jest zmyślony"
+    notes: "Filtr is_obligatory=false zwraca dokładnie te dwa wiersze — język obcy na semestrze 3 Informatyki jest obowiązkowy. Tematy z „Celu przedmiotu” i „Treści programowych” obu kart przedmiotów."
+    source:
+      - "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia/3/przedmioty%20obieralne/Mikroelektronika%20%28MIKRO%29.pdf"
+      - "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia/3/przedmioty%20obieralne/Podstawy%20robotyki%20%28ROBOT%29.pdf"
+      - *przedmioty
+    expected_calls:
+      - tool: get_course
+        args: { major_name: "Informatyka", semester: 3, is_obligatory: false }
+      - tool: search_course_cards
+        expected_sections:
+          - { course_code: "S1Inf1>MIKRO", section: "Cel przedmiotu" }
+          - { course_code: "S1Inf1>MIKRO", section: "Treści programowe" }
+          - { course_code: "S1Inf1>MIKRO", section: "Tematyka zajęć" }
+          - { course_code: "S1Inf1>MIKRO", section: "Przedmiotowe efekty uczenia się" }
+      - tool: search_course_cards
+        expected_sections:
+          - { course_code: "S1Inf1>ROBOT", section: "Cel przedmiotu" }
+          - { course_code: "S1Inf1>ROBOT", section: "Treści programowe" }
+          - { course_code: "S1Inf1>ROBOT", section: "Tematyka zajęć" }
+          - { course_code: "S1Inf1>ROBOT", section: "Przedmiotowe efekty uczenia się" }
