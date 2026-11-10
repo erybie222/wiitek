@@ -256,7 +256,7 @@ plany_studiow:
       courses: { ALIN: 2, ANAM: 6, JANG: 2, LOG: 3, MATD: 6, NINF: 3, BHP: 0, BIBL: 0 }
       total_ects: 22
     expected_answer: "22 ECTS (Algebra liniowa 2 + Analiza matematyczna 6 + Język angielski 2 + Logika obliczeniowa 3 + Matematyka dyskretna 6 + Narzędzia informatyki 3 + BHP 0 + Usługi biblioteczne 0)."
-    notes: "Wymaga agregacji (SUM), nie samej listy wierszy — patrz CLAUDE.md backlog #11."
+    notes: "Wymaga agregacji (SUM), nie samej listy wierszy — patrz project_plan.md, backlog 11."
     source: *przedmioty
     expected_calls:
       - tool: get_course
