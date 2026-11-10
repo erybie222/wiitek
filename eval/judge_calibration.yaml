@@ -450,6 +450,56 @@ tool_data:
                 source_url: "https://put.poznan.pl/cards/2026_2027/Teleinformatyka/stacjonarne/studia pierwszego stopnia/6/Grafika komputerowa (GK).pdf",
               }
 
+  missing_course_kryptografia_kwantowa: &missing_course_kryptografia_kwantowa
+    - name: search_course_cards
+      args:
+        {
+          query: "literatura",
+          course_name: "Kryptografia kwantowa",
+          major_name: "Cyberbezpieczeństwo",
+          section: "Literatura",
+        }
+      result: []
+    - name: search_course_cards
+      args: { query: "Kryptografia kwantowa literatura", major_name: "Cyberbezpieczeństwo", section: "Literatura" }
+      result:
+        - section: "Literatura"
+          content: "Podstawowa:\n1. Chris Bernhardt. Obliczenia kwantowe dla każdego. PWN, Warszawa 2020.\n2. Mika Hirvensalo. Algorytmy kwantowe. Wydawnictwa Szkolne i Pedagogiczne, Warszawa 2004.\n3. Noson S. Yanofsky, Mirco A. Mannucci. Quantum Computing for Computer Scientists. Cambridge\nUniversity Press, Cambridge 2008.\nUzupełniająca:\n1. Scott Aaronson. Quantum Computing since Democritus. Cambridge University Press, Cambridge 2015.\n2. Richard P. Feynman. Przetwarzanie informacji. Feynmana wykłady. PWN, Warszawa 2022.\n3. Eric R. Johnston, Nicholas Harrigan, Mercedes Gimeno-Segovia. Komputer kwantowy.\nProgramowanie, algorytmy, kod. Helion SA, Gliwice 2021."
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1Cybez1>WdOK",
+                course_name: "Wprowadzenie do obliczeń kwantowych",
+                major_name: "Cyberbezpieczeństwo",
+                semester: 5,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Cyberbezpieczeństwo/stacjonarne/studia pierwszego stopnia/5/Wprowadzenie do obliczeń kwantowych (WdOK).pdf",
+              }
+        - section: "Literatura"
+          content: "Podstawowa:\nStokłosa J. (red.), Ochrona danych i zabezpieczenia w systemach teleinformatycznych, Wydawnictwo\nPolitechniki Poznańskiej, Poznań, 2005 (sygnatura w bibliotece PP: W 104521).\nPieprzyk J., Hardjono T., Seberry J., Teoria bezpieczeństwa systemów komputerowych, Helion 2003\n(sygnatura w bibliotece PP: W 110215).\nUzupełniająca:\nMenezes A. i inni, Kryptografia stosowana, WNT, 2005, (sygnatura w bibliotece PP: W 112188)\nMateriały udostępniane przez prowadzącego, co roku aktualizowane."
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1Cybez1>PK",
+                course_name: "Podstawy krytpografii",
+                major_name: "Cyberbezpieczeństwo",
+                semester: 3,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Cyberbezpieczeństwo/stacjonarne/studia pierwszego stopnia/3/Podstawy krytpografii (PK).pdf",
+              }
+        - section: "Literatura"
+          content: "Podstawowa:\nDeb, S., & Sahu, A. K. (2023). Securing the Digital World: A Comprehensive Guide to Multimedia\nSecurity. Routledge.\nPuech, W. (2023). Multimedia Security 1: Authentication and Data Hiding. Wiley-ISTE.\nAnderson, R. (2020). Inżynieria zabezpieczeń. Tom II. Helion.\nPieprzyk, J. (2011). Teoria bezpieczeństwa systemów komputerowych. Helion.\nUzupełniająca:\nWong, D. (2023). Prawdziwy świat kryptografii. Helion.\nAumasson, J.-P. (2017). Serious Cryptography: A Practical Introduction to Modern Encryption. No Starch\nPress.\nBaker, R. L. (2024). Prawdziwa głębia OSINT. Odkryj wartość danych Open Source Intelligence. Helion."
+          last_updated: "2026-11-09T09:57:54.715763+00:00"
+          courses:
+            - {
+                course_code: "S1Cybez1>TOMm",
+                course_name: "Techniki ochrony multimediów",
+                major_name: "Cyberbezpieczeństwo",
+                semester: 6,
+                source_url: "https://put.poznan.pl/cards/2026_2027/Cyberbezpieczeństwo/stacjonarne/studia pierwszego stopnia/6/przedmioty obieralne/Techniki ochrony multimediów (TOMm).pdf",
+              }
+    - name: get_course
+      args: { major_name: "Cyberbezpieczeństwo", course_name: "Kryptografia kwantowa" }
+      result: []
+
 items:
   # --- thresholds -----------------------------------------------------------
   - id: prog-poprawny
@@ -912,4 +962,14 @@ items:
     expected_answer: "Na Grafice komputerowej."
     expected_data: { przedmiot: "Grafika komputerowa" }
     expected_faithfulness: 1
+    expected_correctness: 2
+
+  - id: karta-nieistniejacy-przedmiot-uczciwie
+    what_it_tests: "Kontrola: get_course zwraca [] dla nazwanego przedmiotu, a odpowiedź mówi tylko, że takiego przedmiotu nie ma w planie studiów. Pusty wynik wyszukiwania po nazwie to właśnie ta informacja; literatura innych przedmiotów w danych tego nie zmienia. Sędzia dawał tu fałszywe 0 (2026-11-10)."
+    question: "Jaka jest literatura do Kryptografii kwantowej na Cyberbezpieczeństwie?"
+    tool_calls: *missing_course_kryptografia_kwantowa
+    answer: "Niestety, w planie studiów Cyberbezpieczeństwa nie ma przedmiotu „Kryptografia kwantowa”, więc nie mam jego literatury."
+    expected_answer: "Nie wiem — przedmiotu „Kryptografia kwantowa” nie ma w planie studiów Cyberbezpieczeństwa. Nie wolno podać literatury innego przedmiotu jako odpowiedzi."
+    expected_data: null
+    expected_faithfulness: 2
     expected_correctness: 2

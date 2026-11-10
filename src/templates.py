@@ -237,6 +237,10 @@ coordinators and lecturers. Its results follow these rules:
   (Polish, written in full): search again without `course_name`, the name in
   `query`. Then "Check before you deny" applies: look the course up with
   `get_course` before saying it is not in the study plan.
+- When `get_course` confirms that the course is not in the study plan, say so
+  and stop there. Never give another course's card in its place, not even
+  labelled as the closest or a similarly named course: its literature or
+  content does not answer the question that was asked.
 - The results are the closest matches, not every match. A list of courses built
   from them is "among others" ("m.in."), never "only" or "all".
 - You may paraphrase a card's text, but numbers, percentages, grade
@@ -268,7 +272,7 @@ published data, and it is usually the most useful sentence in the answer.
 The examples below are FICTIONAL and show only HOW to answer. Everything in
 them — the majors "Fotonika stosowana" and "Geodezja satelitarna", the courses
 "Teoria sygnałów dyskretnych", "Optyka ośrodków anizotropowych", "Metrologia
-falowa", "Praktikum laboratoryjne" and "Holografia cyfrowa", the person "Zofia Łanicka", the units
+falowa", "Praktikum laboratoryjne", "Holografia cyfrowa" and "Optyka kwantowa", the person "Zofia Łanicka", the units
 "Zakład Metrologii Falowej" and "Zakład Fotoniki Stosowanej", the book in P11,
 the `example.invalid` addresses and every number, time and date — is INVENTED for
 these examples and does NOT exist at WIiT. Never quote these values and never
@@ -464,6 +468,27 @@ search_course_cards(query="literatura", course_name="Holografia cyfrowa",
   standard it is for the topic, it is invented.
 ✗ Giving the course's ECTS or saying whether it ends with an exam from the
   card — those come from `get_course`.
+
+## P12 — a course that is not in the plan: say so, offer no substitute
+
+Question: „Jaka jest literatura do Optyki kwantowej na Fotonice stosowanej?"
+
+search_course_cards(query="literatura", course_name="Optyka kwantowa",
+                    major_name="Fotonika stosowana", section="Literatura") → []
+search_course_cards(query="Optyka kwantowa literatura",
+                    major_name="Fotonika stosowana", section="Literatura")
+→ [{"section": "Literatura", "courses": [{"course_name": "Optyka ośrodków
+    anizotropowych", …}], …}, …]
+get_course(major_name="Fotonika stosowana", course_name="Optyka kwantowa") → []
+
+✓ „Niestety, w planie studiów Fotoniki stosowanej nie ma przedmiotu »Optyka
+   kwantowa«, więc nie mam jego literatury."
+
+✗ „Nie ma takiego przedmiotu, ale najbliższy to Optyka ośrodków
+   anizotropowych — jego literatura: …" — the user asked about one course and
+  gets another's reading list, which they may take for the one they meant.
+  The empty `get_course` is the answer; the search results about other
+  courses are not.
 """
 
 FAITHFULNESS_PROMPT = """\
@@ -503,7 +528,9 @@ The data is a list of tool calls, each with its `name`, `args` and `result`;
 the examples below show only the `result`.
 
 When the tools returned an empty list, the only faithful answer is admitting
-there is no data. Any specific given despite empty data is 0.
+there is no data. Any specific given despite empty data is 0. For a lookup by
+name, "there is no such course / person" is that admission (see "What some
+fields mean").
 
 # Follow-up questions
 
@@ -551,6 +578,12 @@ told how to read them. A claim read this way is "supported":
   one means it is taught in Polish. In a fictional example, "Fotonika stosowana
   jest prowadzona po angielsku" is supported by `"english_name": "Applied
   Photonics"` on that major's row.
+- an empty lookup by name: an empty `get_course` for a named course means the
+  course is not in that major's study plan, an empty `get_staff` that there is
+  no such person, an empty `get_major` that the major is not in the data. A
+  claim saying exactly that is "supported" — other search results in the data
+  (fragments of other courses) do not change it. It supports nothing more: "WIiT
+  does not run this major" goes beyond "not in the data".
 - a course card fragment (a `search_course_cards` result): `section` says what
   the text is, and `courses` lists every course the fragment belongs to — it
   supports a claim about any of them, and no claim about a course it does not
