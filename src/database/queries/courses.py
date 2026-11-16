@@ -40,7 +40,6 @@ def upsert_course(
     semester: int,
     name: str,
     is_obligatory: bool,
-    is_english: bool,
     ects: int,
     hours_lecture: int,
     hours_classes: int,
@@ -52,7 +51,8 @@ def upsert_course(
     """Insert a course, or update it if the major already has this code in this semester.
 
     A course is one row of a major's catalog: the same code can be listed on several majors' pages (e.g. PE electives)
-    and in more than one semester, and each listing is stored as its own row.
+    and in more than one semester, and each listing is stored as its own row. The teaching language is not set here: the
+    catalog does not print it, so the course card step writes it (``set_course_language``) and an update keeps it.
 
     Args:
         cursor: Database cursor to run the SQL on.
@@ -61,7 +61,6 @@ def upsert_course(
         semester: Semester number, 1 to 8.
         name: Course name.
         is_obligatory: True for an obligatory course, False for an elective.
-        is_english: True if taught in English.
         ects: ECTS points.
         hours_lecture: Lecture hours (W).
         hours_classes: Classes hours (C).
@@ -73,14 +72,13 @@ def upsert_course(
     cursor.execute(
         """
         INSERT INTO courses
-        (course_code, major_id, semester, name, is_obligatory, is_english, ects,
+        (course_code, major_id, semester, name, is_obligatory, ects,
          hours_lecture, hours_classes, hours_lab, hours_project, assessment_type, source_url)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (course_code, major_id, semester)
         DO UPDATE SET
             name = EXCLUDED.name,
             is_obligatory = EXCLUDED.is_obligatory,
-            is_english = EXCLUDED.is_english,
             ects = EXCLUDED.ects,
             hours_lecture = EXCLUDED.hours_lecture,
             hours_classes = EXCLUDED.hours_classes,
@@ -96,7 +94,6 @@ def upsert_course(
             semester,
             name,
             is_obligatory,
-            is_english,
             ects,
             hours_lecture,
             hours_classes,
@@ -108,13 +105,36 @@ def upsert_course(
     )
 
 
+def set_course_language(cursor: DBCursor, course_code: str, major_id: int, semester: int, language: str) -> None:
+    """Store a course's teaching language, read from its course card.
+
+    ``last_updated`` is left alone: the catalog step set it earlier in the same run, and it is what marks the course as
+    still listed.
+
+    Args:
+        cursor: Database cursor of the ingestion run.
+        course_code: Catalog code of the course.
+        major_id: Id of the major whose catalog lists it.
+        semester: Semester it is listed in.
+        language: The course card's "Język oferowanego przedmiotu" value as printed, e.g. "angielski".
+    """
+    cursor.execute(
+        """
+        UPDATE courses
+        SET language = %s
+        WHERE course_code = %s AND major_id = %s AND semester = %s;
+    """,
+        (language, course_code, major_id, semester),
+    )
+
+
 def get_course(
     cursor: DBCursor,
     major_name: str,
     course_name: str | None = None,
     semester: int | None = None,
     is_obligatory: bool | None = None,
-    is_english: bool | None = None,
+    language: str | None = None,
 ) -> list[dict]:
     """Find the courses of one major, optionally narrowed down.
 
@@ -125,7 +145,7 @@ def get_course(
         course_name: Only courses whose name contains this text (case is ignored); None for all.
         semester: Only this semester; None for all.
         is_obligatory: True for obligatory only, False for electives only, None for both.
-        is_english: True for English-taught only, False for Polish only, None for both.
+        language: Only courses taught in this language, as stored (e.g. "angielski"; case is ignored); None for all.
 
     Returns:
         list[dict]: Matching courses ordered by semester and name; empty if
@@ -133,7 +153,9 @@ def get_course(
             ``course_code`` (str) — catalog code.
             ``name`` (str) — course name.
             ``semester`` (int) — semester number.
-            ``is_obligatory`` / ``is_english`` (bool) — as in the arguments.
+            ``is_obligatory`` (bool) — as in the arguments.
+            ``language`` (str | None) — teaching language from the course card, e.g. "polski" or "angielski"; None
+                when no course card was read, so the language is unknown.
             ``ects`` (int) — ECTS points.
             ``hours_lecture`` / ``hours_classes`` / ``hours_lab`` /
                 ``hours_project`` (int) — hours per semester of each form.
@@ -149,7 +171,7 @@ def get_course(
     # check (None = no filter), once for the comparison.
     cursor.execute(
         """
-        SELECT c.course_code, c.name, c.semester, c.is_obligatory, c.is_english,
+        SELECT c.course_code, c.name, c.semester, c.is_obligatory, c.language,
                c.ects, c.hours_lecture, c.hours_classes, c.hours_lab, c.hours_project,
                c.assessment_type, c.source_url, c.last_updated
         FROM courses c
@@ -159,7 +181,7 @@ def get_course(
           AND (%s::text IS NULL OR unaccent(c.name) ILIKE unaccent(%s::text))
           AND (%s::int IS NULL OR c.semester = %s::int)
           AND (%s::boolean IS NULL OR c.is_obligatory = %s::boolean)
-          AND (%s::boolean IS NULL OR c.is_english = %s::boolean)
+          AND (%s::text IS NULL OR LOWER(c.language) = LOWER(%s::text))
         ORDER BY c.semester, c.name;
     """,
         (
@@ -171,8 +193,8 @@ def get_course(
             semester,
             is_obligatory,
             is_obligatory,
-            is_english,
-            is_english,
+            language,
+            language,
         ),
     )
 
@@ -181,7 +203,7 @@ def get_course(
         "name",
         "semester",
         "is_obligatory",
-        "is_english",
+        "language",
         "ects",
         "hours_lecture",
         "hours_classes",

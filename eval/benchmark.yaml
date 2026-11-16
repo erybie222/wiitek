@@ -86,6 +86,7 @@ meta:
     progi: &progi "data/progi punktowe 2025-2021.pdf"
     przedmioty: &przedmioty "https://put.poznan.pl/karty-ects/2026_2027/Informatyka/stacjonarne/studia%20pierwszego%20stopnia"
     przedmioty_cyber: &przedmioty_cyber "https://put.poznan.pl/karty-ects/2026_2027/Cyberbezpieczeństwo/stacjonarne/studia%20pierwszego%20stopnia"
+    przedmioty_si: &przedmioty_si "https://put.poznan.pl/karty-ects/2026_2027/Sztuczna%20inteligencja_Artificial%20Intelligence/stacjonarne/studia%20pierwszego%20stopnia"
     kierunki: &kierunki "src/run_ingestion.py"
     informator: &informator "informator.put.poznan.pl API"
 
@@ -326,6 +327,81 @@ plany_studiow:
         args: { major_name: "Cyberbezpieczeństwo", course_name: "Algebra liniowa" }
       - tool: get_course
         args: { major_name: "Informatyka", course_name: "Algebra liniowa" }
+
+  - id: przedmiot-po-angielsku-sztuczna-inteligencja
+    question: "Czy 'Algorytmy i struktury danych' na Sztucznej inteligencji są prowadzone po angielsku?"
+    entities: { kierunek: "Sztuczna inteligencja", przedmiot: "Algorytmy i struktury danych" }
+    expected_data:
+      {
+        course_code: "S1SI1E>AiSD",
+        semester: 2,
+        ects: 6,
+        is_obligatory: true,
+        hours_lecture: 30,
+        hours_lab: 30,
+        assessment_type: "Egzamin",
+        language: "angielski",
+      }
+    expected_answer: "Tak, po angielsku. 6 ECTS, egzamin."
+    notes: >
+      Backlog 23: dopóki język brano z końcówki kodu („ang”), ten wiersz miał
+      is_english = false i agent odpowiadał „nie”. Język sprawdzony 2026-11-15
+      w PDF-ie karty przedmiotu (pole „Język oferowanego przedmiotu”:
+      angielski), ECTS, godziny i egzamin w katalogu ECTS (ingestia
+      2026-11-15).
+    source:
+      - "https://put.poznan.pl/cards/2026_2027/Sztuczna%20inteligencja_Artificial%20Intelligence/stacjonarne/studia%20pierwszego%20stopnia/2/Algorytmy%20i%20struktury%20danych%20%28AiSD%29.pdf"
+      - *przedmioty_si
+    expected_calls:
+      - tool: get_course
+        args: { major_name: "Sztuczna inteligencja", course_name: "Algorytmy i struktury danych" }
+
+  - id: przedmiot-edge-po-polsku-na-kierunku-anglojezycznym
+    question: "Czy Pilates na Sztucznej inteligencji jest prowadzony po angielsku?"
+    entities: { kierunek: "Sztuczna inteligencja", przedmiot: "Pilates" }
+    expected_data:
+      - {
+          course_code: "C_CS>Pil30_Z",
+          semester: 1,
+          ects: 0,
+          is_obligatory: false,
+          hours_classes: 30,
+          assessment_type: "Zaliczenie z ocena",
+          language: "polski",
+        }
+      - {
+          course_code: "C_CS>Pil30_L",
+          semester: 2,
+          ects: 0,
+          is_obligatory: false,
+          hours_classes: 0,
+          assessment_type: "Zaliczenie z ocena",
+          language: "polski",
+        }
+      - {
+          course_code: "C_CS>Pil30_Z",
+          semester: 2,
+          ects: 0,
+          is_obligatory: false,
+          hours_classes: 30,
+          assessment_type: "Zaliczenie z ocena",
+          language: "polski",
+        }
+    expected_answer: "Nie, po polsku. 0 ECTS, zaliczenie na ocenę."
+    edge_case: "kierunek anglojęzyczny, przedmiot po polsku — język przedmiotu z jego wiersza (language), nie z english_name kierunku"
+    notes: >
+      Jedyne przedmioty Sztucznej inteligencji z kartą po polsku to zajęcia WF.
+      Język sprawdzony 2026-11-15 we wszystkich trzech PDF-ach kart Pilatesu
+      na tym kierunku (pole „Język oferowanego przedmiotu”: polski), ECTS,
+      godziny i forma zaliczenia w katalogu ECTS (ingestia 2026-11-15).
+    source:
+      - "https://put.poznan.pl/cards/2026_2027/Sztuczna%20inteligencja_Artificial%20Intelligence/stacjonarne/studia%20pierwszego%20stopnia/1/przedmioty%20obieralne/Pilates%20%28Pil30_Z%29.pdf"
+      - "https://put.poznan.pl/cards/2026_2027/Sztuczna%20inteligencja_Artificial%20Intelligence/stacjonarne/studia%20pierwszego%20stopnia/2/przedmioty%20obieralne/Pilates%20%28Pil30_L%29.pdf"
+      - "https://put.poznan.pl/cards/2026_2027/Sztuczna%20inteligencja_Artificial%20Intelligence/stacjonarne/studia%20pierwszego%20stopnia/2/przedmioty%20obieralne/Pilates%20%28Pil30_Z%29.pdf"
+      - *przedmioty_si
+    expected_calls:
+      - tool: get_course
+        args: { major_name: "Sztuczna inteligencja", course_name: "Pilates" }
 
 # ---------------------------------------------------------------------------
 # Category 3 — kierunki (majors)

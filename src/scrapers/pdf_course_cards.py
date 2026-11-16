@@ -11,6 +11,9 @@ A course card ("karta opisu przedmiotu") is generated from one template, so the 
 - the first page prints "Koordynatorzy" and "Wykładowcy" as two columns side by side. Plain text extraction merges
   them into one line ("dr X dr Y"), so they are split by the x position of the "Wykładowcy" heading. A list too long
   for the page continues on the next one under a repeated lone "Wykładowcy" heading, which belongs to the same section;
+- the course's teaching language is a value of the first page's "Przedmiot" block: the grey label "Język oferowanego
+  przedmiotu" stands in the right column of a two-column line ("Poziom studiów" on the left), and its value in the
+  same column of the line below ("pierwszego stopnia angielski"), so the value is cut out by the label's x position;
 - "Bilans nakładu pracy przeciętnego studenta" is the last section: a table of numbers that text extraction scrambles,
   so reading stops there. ECTS and hours come from the catalog (``get_course``) instead.
 
@@ -26,6 +29,7 @@ import re
 import time
 from collections import Counter
 from dataclasses import dataclass, field
+from itertools import pairwise
 from pathlib import Path
 
 import pdfplumber
@@ -36,7 +40,7 @@ from database.queries.course_card_sections import (
     delete_sections_not_seen_in_run,
     upsert_course_card_section,
 )
-from database.queries.courses import get_courses_with_card_links
+from database.queries.courses import get_courses_with_card_links, set_course_language
 
 COURSE_CARD_CACHE_DIR = Path("data/course_cards")
 # Every course card link starts with this; the rest of the path becomes the cache path.
@@ -79,6 +83,8 @@ STAFF_SECTION = "Koordynatorzy i wykładowcy"
 # title, word for word as printed (so "SYLABUS" stays: it is matched, not our name for the document).
 SECTIONS_TO_SKIP = ("KARTA OPISU PRZEDMIOTU - SYLABUS", "Przedmiot", "Liczba godzin", "Liczba punktów ECTS")
 LAST_SECTION_HEADING = "Bilans nakładu pracy przeciętnego studenta"
+# Grey first-page label whose value, in the line below, is the course's teaching language.
+LANGUAGE_LABEL = "Język oferowanego przedmiotu"
 # A section holding only one of these (case ignored) says nothing and is not stored.
 EMPTY_SECTION_TEXTS = {"", "brak", "brak.", "-", "–", "—"}
 
@@ -120,6 +126,7 @@ class ParsedCourseCard:
         unknown_headings: Headings the parser does not know; their text was not stored.
         reached_last_section: False when the "Bilans" heading never came: the text of the last stored section may then
             include the workload table.
+        language: Teaching language as printed, e.g. "angielski"; None when the label or its value was not found.
     """
 
     sections: dict[str, str] = field(default_factory=dict)
@@ -127,6 +134,7 @@ class ParsedCourseCard:
     repeated_sections: list[str] = field(default_factory=list)
     unknown_headings: list[str] = field(default_factory=list)
     reached_last_section: bool = False
+    language: str | None = None
 
 
 def is_grey(color: tuple | list | None) -> bool:
@@ -280,8 +288,32 @@ def staff_columns_text(heading: TextLine, body: list[TextLine]) -> str:
     return "\n".join(["Koordynatorzy:", *coordinators, "", "Wykładowcy:", *lecturers])
 
 
+def course_language(lines: list[TextLine]) -> str | None:
+    """Read the course's teaching language from the first page's "Język oferowanego przedmiotu" field.
+
+    Args:
+        lines: The PDF's lines, from ``read_lines``; grey template lines included, as the label is one.
+
+    Returns:
+        str | None: The value as printed, e.g. "angielski" — only the words of the label's column, so "pierwszego
+            stopnia" from the column beside it is left out. None when no grey line holds the label, or the line below it
+            has nothing in its column.
+    """
+    for label, below in pairwise(lines):
+        if not label.is_template_text or LANGUAGE_LABEL not in label.text:
+            continue
+        # The label is matched in the joined text, so a word glued to its neighbour ("studiówJęzyk") could pass without
+        # a word "Język" to take the column from; such a line yields no language instead of failing the whole card.
+        column_x = next((word["x0"] for word in label.words if word["text"] == LANGUAGE_LABEL.split()[0]), None)
+        if column_x is None:
+            continue
+        value = " ".join(word["text"] for word in below.words if word["x0"] >= column_x - COLUMN_TOLERANCE)
+        return value or None
+    return None
+
+
 def parse_course_card(pdf_path: Path) -> ParsedCourseCard:
-    """Cut a course card PDF into the sections worth storing.
+    """Cut a course card PDF into the sections worth storing, and read its teaching language.
 
     Args:
         pdf_path: The PDF file.
@@ -290,11 +322,12 @@ def parse_course_card(pdf_path: Path) -> ParsedCourseCard:
         ParsedCourseCard: The sections and what was left out; see its attributes. ``sections`` is empty when no known
             heading was found (not a course card, or a changed template).
     """
-    parsed = ParsedCourseCard()
+    lines = read_lines(pdf_path)
+    parsed = ParsedCourseCard(language=course_language(lines))
 
     # Group lines under the heading above them; text before the first heading is the page header.
     blocks: list[tuple[TextLine, list[TextLine]]] = []
-    for line in read_lines(pdf_path):
+    for line in lines:
         if line.is_heading:
             if line.text == LAST_SECTION_HEADING:
                 parsed.reached_last_section = True
@@ -369,12 +402,13 @@ def load_course_card(session: requests.Session, url: str, cache_dir: Path) -> tu
 
 
 def ingest_course_cards(cursor: DBCursor, cache_dir: Path = COURSE_CARD_CACHE_DIR) -> None:
-    """Store the sections of every stored course's card, and print what was stored and what was not.
+    """Store the sections and the teaching language from every stored course's card, and print what was stored.
 
     Run after the courses: it reads their links from the database. For each course the course card sections are upserted
-    and the course's sections its PDF no longer has are deleted. A course card that cannot be downloaded or read keeps
-    its stored sections. Sections of courses that left the catalog are already gone with the course (``ON DELETE
-    CASCADE``).
+    and the course's sections its PDF no longer has are deleted, and the language read from the PDF is written to the
+    course row (the catalog step never writes it). A course card that cannot be downloaded or read keeps its stored
+    sections and language; a course whose card was never read has no language. Sections of courses that left the catalog
+    are already gone with the course (``ON DELETE CASCADE``).
 
     Args:
         cursor: Database cursor of the ingestion run.
@@ -389,8 +423,10 @@ def ingest_course_cards(cursor: DBCursor, cache_dir: Path = COURSE_CARD_CACHE_DI
     files = Counter()
     sections_per_name = Counter()
     unknown_headings = Counter()
+    courses_per_language = Counter()
     skipped: list[str] = []
     without_last_section: list[str] = []
+    without_language: list[str] = []
     courses_stored = empty_sections = repeated_sections = sections_removed = 0
 
     for number, course in enumerate(courses, start=1):
@@ -410,6 +446,8 @@ def ingest_course_cards(cursor: DBCursor, cache_dir: Path = COURSE_CARD_CACHE_DI
             unknown_headings.update(parsed.unknown_headings)
             if not parsed.reached_last_section:
                 without_last_section.append(url)
+            if parsed.language is None:
+                without_language.append(url)
 
         parsed = parsed_by_url[url]
         if parsed is None:
@@ -419,6 +457,10 @@ def ingest_course_cards(cursor: DBCursor, cache_dir: Path = COURSE_CARD_CACHE_DI
             upsert_course_card_section(cursor, *key, source_url=url, section=section, chunk_index=0, content=text)
             sections_per_name[section] += 1
         sections_removed += delete_sections_not_seen_in_run(cursor, *key)
+        # A card whose language field was not found keeps the stored language, as an unreadable card keeps its sections.
+        if parsed.language is not None:
+            set_course_language(cursor, *key, language=parsed.language)
+            courses_per_language[parsed.language] += 1
         courses_stored += 1
 
         if number % 50 == 0:
@@ -430,6 +472,10 @@ def ingest_course_cards(cursor: DBCursor, cache_dir: Path = COURSE_CARD_CACHE_DI
     )
     print(f"  PDFs: {files['downloaded']} downloaded, {files['from cache']} from the cache, {len(skipped)} skipped.")
     print("  Sections stored per name: " + ", ".join(f"{name} {count}" for name, count in sections_per_name.items()))
+    print(
+        "  Teaching language stored per course: "
+        + ", ".join(f"{language} {count}" for language, count in courses_per_language.most_common())
+    )
     print(
         f"  Left out: {empty_sections} empty sections, {repeated_sections} repeating an earlier section of their "
         f"PDF; {sections_removed} stored sections no longer in their PDF removed."
@@ -443,6 +489,10 @@ def ingest_course_cards(cursor: DBCursor, cache_dir: Path = COURSE_CARD_CACHE_DI
         print(f"  WARNING: {len(without_last_section)} PDFs never reached '{LAST_SECTION_HEADING}' — check that no")
         print("  workload-table numbers ended up in their last section:")
         for url in without_last_section:
+            print(f"    {url}")
+    if without_language:
+        print(f"  WARNING: no '{LANGUAGE_LABEL}' value found in {len(without_language)} PDFs (stored language kept):")
+        for url in without_language:
             print(f"    {url}")
     if skipped:
         print("  Skipped (their stored sections kept):")

@@ -136,9 +136,6 @@ def ingest_ects_catalog(cursor: DBCursor, url: str, major_id: int) -> None:
             subject_name = name_span.get_text(strip=True)
             subject_code = code_span.get_text(strip=True)
 
-            # If course code endswith ang then change boolean flag to true
-            is_english = subject_code.lower().endswith("ang")
-
             # 2. Extract ECTS points
             ects_text = cells[1].get_text(strip=True)
             ects = int(ects_text) if ects_text.isdigit() else 0
@@ -170,7 +167,6 @@ def ingest_ects_catalog(cursor: DBCursor, url: str, major_id: int) -> None:
                     "semester": semester,
                     "name": subject_name,
                     "is_obligatory": is_obligatory,
-                    "is_english": is_english,
                     "ects": ects,
                     "hours_lecture": lecture_hours,
                     "hours_classes": classes_hours,

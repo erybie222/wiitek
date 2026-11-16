@@ -110,7 +110,7 @@ def get_course(
     course_name: str | None = None,
     semester: int | None = None,
     is_obligatory: bool | None = None,
-    is_english: bool | None = None,
+    language: str | None = None,
 ) -> tuple[str, list[dict]]:
     """Look up study-plan courses (przedmioty) for a major.
 
@@ -118,18 +118,21 @@ def get_course(
     offering a similarly named course from another semester or major. The same course name can carry different ECTS and
     hours on different majors, so never present one major's figures as universal.
 
+    A course's teaching language is its own "language" field, never the major's: an English-taught major also has
+    courses taught in Polish. A null "language" means it is unknown — say you don't know, never guess Polish.
+
     Args:
         major_name: Polish name, or the English name of an English-taught major (case- and diacritic-insensitive).
         course_name: Optional substring filter on course name (case- and diacritic-insensitive).
         semester: Optional filter on semester (1..8).
         is_obligatory: Optional filter: true for obligatory, false for elective. Leave unset when asked whether a course
             is obligatory — read it from the result.
-        is_english: Optional filter for English-taught courses. Leave unset when asked whether a course is
-            English-taught — read it from the result.
+        language: Optional filter on the teaching language, spelled in Polish as stored: "polski", "angielski". Leave
+            unset when asked which language a course is taught in — read it from the result.
     """
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
-            rows = _get_course(cursor, major_name, course_name, semester, is_obligatory, is_english)
+            rows = _get_course(cursor, major_name, course_name, semester, is_obligatory, language)
     return json.dumps(rows, ensure_ascii=False), rows
 
 

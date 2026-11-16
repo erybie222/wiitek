@@ -56,6 +56,8 @@ ALLOWED_VOCABULARY = {
     "piatek",
     "egzamin",
     "zaliczenie z ocena",  # assessment_type values
+    "polski",
+    "angielski",  # course `language` values, the spelling of get_course's language filter
     "full-time",
     "part-time",
     "bachelor-of-engineering",  # fixed codes

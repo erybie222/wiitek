@@ -42,7 +42,9 @@ CREATE TABLE IF NOT EXISTS courses (
     major_id INT NOT NULL CONSTRAINT fk_course_major REFERENCES majors(id) ON DELETE CASCADE,
     semester INT NOT NULL CHECK (semester BETWEEN 1 AND 8),
     name VARCHAR(200) NOT NULL,
-    is_english BOOLEAN NOT NULL DEFAULT FALSE,
+    -- Teaching language as the course card prints it ("polski", "angielski"...), written by
+    -- the course card step; NULL when no course card was read, i.e. unknown.
+    language VARCHAR(50),
     is_obligatory BOOLEAN NOT NULL DEFAULT TRUE,
     ects INT NOT NULL CHECK (ects >= 0),
     hours_lecture INT NOT NULL DEFAULT 0,
