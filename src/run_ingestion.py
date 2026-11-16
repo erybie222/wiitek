@@ -6,8 +6,10 @@ Steps, in order (later steps depend on earlier ones):
 2. every major, and the courses from its ECTS catalog page;
 3. admission thresholds from the PDF — matched to the majors from step 2 by name;
 4. faculty units, staff, their functions and office hours from Informator;
-5. the sections of every course's card PDF — read from the links stored in
-   step 2, downloaded once into ``data/course_cards/`` and parsed from there;
+5. the sections of every course's card PDF, and the course's teaching language
+   printed on it — read from the links stored in step 2, downloaded once into
+   ``data/course_cards/`` and parsed from there (the catalog in step 2 has no
+   language, so a course's language stays empty until its card is read);
 6. a vector for every section from step 5, for the course card search —
    computed only for new or changed text.
 
@@ -16,9 +18,9 @@ leaves the database as it was. Two steps are exceptions, reported and skipped
 instead of undoing the rest: step 3 when the PDF is missing or not laid out as
 expected, and step 4, which needs a browser cookie that often expires (staff
 saved before the failure are kept). Step 5 skips, one by one, the course cards it
-cannot download or read, keeping their stored sections. Step 6 is skipped
-without an OpenAI key and stops at an API error, keeping the vectors computed
-so far; the next run computes the missing ones.
+cannot download or read, keeping their stored sections and language. Step 6 is
+skipped without an OpenAI key and stops at an API error, keeping the vectors
+computed so far; the next run computes the missing ones.
 
 Do not commit partway through: step 2 deletes courses and step 4 staff and
 units that this run did not write, and both recognise them by a
