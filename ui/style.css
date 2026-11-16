@@ -1,0 +1,343 @@
+/* WIiTek chat page: what the theme in .streamlit/config.toml cannot set. Injected by app.py with st.html.
+   The data-testid selectors are Streamlit's own and checked against Streamlit 1.67; recheck them after an upgrade. */
+:root {
+  --bg: #0b1220;
+  --side: #0f172a;
+  --card: #111a2e;
+  --raised: #1a2640;
+  --line: #1e293b;
+  --line-strong: #2a3a55;
+  --text: #e8edf5;
+  --muted: #9aa8bf;
+  --faint: #8796ae;
+  --accent: #0b7a6f;
+  --accent-text: #3fd8c2;
+  --accent-soft: rgba(45, 212, 191, 0.12);
+}
+
+/* Inter and Space Grotesk (headings) come from the theme. Never set font-family on a broad selector such as
+   [class*="st-"]: it also hits the Material Symbols icons, which then show their names ("add", "search") as text. */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+
+header[data-testid="stHeader"] {
+  background: transparent;
+}
+.block-container {
+  max-width: 940px;
+  padding-top: 3rem;
+}
+
+/* ---------- sidebar ---------- */
+section[data-testid="stSidebar"] {
+  border-right: 1px solid var(--line);
+}
+section[data-testid="stSidebar"] .stButton button {
+  justify-content: flex-start;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: #c3cddc;
+  padding: 0.6rem 0.75rem;
+  font-weight: 400;
+  font-size: 18px;
+}
+section[data-testid="stSidebar"] .stButton button:hover {
+  background: var(--raised);
+  color: #fff;
+}
+/* "New chat" is the sidebar's one primary button */
+section[data-testid="stSidebar"] [data-testid="stBaseButton-primary"] {
+  background: #16213a !important;
+  border: 1px solid var(--line-strong) !important;
+  color: var(--text) !important;
+  font-weight: 500;
+  min-height: 56px;
+}
+/* the open conversation is the sidebar's tertiary button */
+section[data-testid="stSidebar"] [data-testid="stBaseButton-tertiary"] {
+  background: var(--raised) !important;
+  color: #fff !important;
+  font-weight: 500;
+  box-shadow: inset 3px 0 0 var(--accent-text);
+}
+.wt-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0.25rem;
+}
+.wt-logo {
+  /* the "[W]" logo image; its navy matches the sidebar, so a thin line keeps its edge visible */
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--line-strong);
+}
+.wt-name {
+  font:
+    700 20px "Space Grotesk",
+    sans-serif;
+  line-height: 1.1;
+  color: var(--text);
+}
+.wt-sub {
+  font-size: 16px;
+  color: var(--muted);
+}
+.wt-group {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 1rem 0 0.25rem 0.75rem;
+}
+/* the selected PL/EN option (the segmented control's buttons carry no data-testid, only aria-checked) */
+section[data-testid="stSidebar"] button[aria-checked="true"] {
+  background: var(--raised) !important;
+  color: var(--text) !important;
+  border-color: var(--line-strong) !important;
+}
+.wt-sidebar-note {
+  font-size: 15px;
+  color: var(--faint);
+  line-height: 1.5;
+}
+
+/* ---------- welcome screen ---------- */
+.wt-hero {
+  text-align: center;
+  margin: 2.5rem 0 1.5rem;
+}
+.wt-badge {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 17px;
+  color: #c3cddc;
+  border: 1px solid #22314d;
+  background: var(--side);
+  border-radius: 999px;
+  padding: 7px 14px;
+}
+.wt-badge b {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.wt-hero h1 {
+  font-size: 54px !important;
+  margin: 0.75rem 0 0.5rem;
+  padding: 0;
+  color: var(--text);
+}
+.wt-hero p {
+  color: var(--muted);
+  font-size: 22px;
+  max-width: 620px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+.wt-examples-label {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 1.5rem 0 0.25rem;
+}
+
+/* example cards: the st.button widgets with keys starting "ex_" */
+[class*="st-key-ex_"] button {
+  height: auto;
+  min-height: 112px;
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--side);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  white-space: normal;
+  line-height: 1.45;
+}
+[class*="st-key-ex_"] button:hover {
+  border-color: var(--accent);
+  background: #13203a;
+}
+[class*="st-key-ex_"] button p {
+  font-size: 17px;
+  color: var(--muted);
+}
+[class*="st-key-ex_"] button strong {
+  color: var(--text);
+  font-size: 18px;
+  display: block;
+  margin-bottom: 3px;
+}
+/* the title is already its own block, so the Markdown line break after it would leave an empty line */
+[class*="st-key-ex_"] button br {
+  display: none;
+}
+/* icon and text side by side, both from the top; the icon sits in a soft box (its wrapper span) */
+[class*="st-key-ex_"] button span:has(> span > [data-testid="stIconMaterial"]) {
+  align-items: flex-start;
+  gap: 14px;
+}
+[class*="st-key-ex_"] button span:has(> [data-testid="stIconMaterial"]) {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+}
+[class*="st-key-ex_"] button [data-testid="stIconMaterial"] {
+  color: var(--accent-text);
+  font-size: 26px;
+}
+.wt-disclaimer {
+  text-align: center;
+  font-size: 16px;
+  color: var(--faint);
+  margin-top: 1.25rem;
+}
+
+/* ---------- messages ---------- */
+/* the open conversation's title above it, named after its first question */
+.wt-chat-title {
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+[data-testid="stChatMessage"] {
+  background: transparent;
+  padding: 0.25rem 0;
+  gap: 14px;
+}
+/* the user's message as a bubble on the right */
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+  flex-direction: row-reverse;
+}
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] {
+  flex: 0 1 auto;
+  max-width: 80%;
+  background: var(--raised);
+  border: 1px solid #22314d;
+  border-radius: 18px 18px 4px 18px;
+  padding: 10px 18px;
+}
+[data-testid="stChatMessageAvatarUser"] {
+  display: none;
+}
+[data-testid="stChatMessageAvatarAssistant"],
+[data-testid="stChatMessage"] img {
+  border-radius: 10px;
+}
+[data-testid="stChatMessageContent"] p,
+[data-testid="stChatMessageContent"] li {
+  font-size: 19px;
+  line-height: 1.65;
+}
+
+/* source cards under an answer */
+.wt-sources-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0.75rem 0 0.5rem;
+}
+.wt-sources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+}
+.wt-source {
+  display: flex;
+  gap: 12px;
+  background: var(--side);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-decoration: none !important;
+  color: var(--text) !important;
+}
+a.wt-source:hover {
+  border-color: var(--line-strong);
+}
+.wt-source .n {
+  flex: none;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wt-source .t {
+  font-weight: 600;
+  font-size: 17px;
+}
+.wt-source .d {
+  font-size: 15px;
+  color: var(--muted);
+}
+
+/* tables in answers */
+[data-testid="stChatMessageContent"] table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid var(--line);
+}
+[data-testid="stChatMessageContent"] th {
+  background: var(--side);
+  color: var(--muted);
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+[data-testid="stChatMessageContent"] td,
+[data-testid="stChatMessageContent"] th {
+  border-color: var(--line) !important;
+  padding: 10px 14px;
+}
+
+/* ---------- chat input ---------- */
+[data-testid="stBottomBlockContainer"] {
+  max-width: 940px;
+  padding-bottom: 1.5rem;
+}
+[data-testid="stChatInput"] {
+  border-radius: 16px;
+  border: 1px solid var(--line-strong);
+  background: var(--card);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+}
+[data-testid="stChatInput"] textarea {
+  font-size: 19px;
+}
+[data-testid="stChatInputSubmitButton"] {
+  background: var(--accent) !important;
+  border-radius: 12px;
+  width: 50px;
+  height: 50px;
+  color: #fff !important;
+}
+[data-testid="stChatInputSubmitButton"] svg {
+  fill: #fff;
+}

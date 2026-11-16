@@ -93,14 +93,28 @@ uv run src/clean_db.py
 
 ### Chat with the bot
 
+In the browser:
+
+```bash
+uv run streamlit run app.py
+```
+
+then open http://localhost:8501. The sidebar starts a new conversation (Ctrl+K), searches and lists
+the earlier ones of this browser tab and switches the interface between Polish and English (the bot
+answers in the language of the question either way). Follow-ups like "a w 2024?" work within a
+conversation. Under each answer its cited sources are shown as cards; above it, a fold lists the
+database tools the agent called, which helps when an answer looks wrong. The look is set by
+`.streamlit/config.toml` (theme) and `ui/style.css`.
+
+Or in the terminal:
+
 ```bash
 uv run main.py
 ```
 
 Type a question in Polish or English; `exit` or Ctrl+C quits. The bot remembers the conversation
-until you quit, so follow-ups like "a w 2024?" work; restart it for a fresh conversation. Before
-each answer the chat prints which
-database tools the agent called, which helps when an answer looks wrong.
+until you quit; restart it for a fresh conversation. Before each answer the chat prints which
+database tools the agent called.
 
 ### Measure answer quality
 

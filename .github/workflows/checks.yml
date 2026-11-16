@@ -21,7 +21,7 @@ jobs:
       # The repository has no tests, so this is what catches a broken import
       # in code nobody ran after a refactor (scrapers, ingestion, the chat).
       - name: Every module imports
-        run: uv run python -c "import main, run_ingestion, clean_db, eval.run_eval, eval.calibrate_judges"
+        run: uv run python -c "import main, app, run_ingestion, clean_db, eval.run_eval, eval.calibrate_judges"
         env:
           PYTHONPATH: src
 

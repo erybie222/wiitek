@@ -1,0 +1,21 @@
+# Theme of the chat page (app.py): dark navy with a sea-green accent. ui/style.css adds what the theme cannot set.
+[theme]
+base = "dark"
+primaryColor = "#0B7A6F"             # sea-green accent: buttons, focus, active elements
+backgroundColor = "#0B1220"          # main column
+secondaryBackgroundColor = "#111A2E" # inputs, cards, chat input
+textColor = "#E8EDF5"
+borderColor = "#1E293B"
+showWidgetBorder = true
+baseRadius = "10px"
+baseFontSize = 19                    # larger than the default 16 px
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFont = "'Space Grotesk':https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap"
+
+[theme.sidebar]
+backgroundColor = "#0F172A"
+secondaryBackgroundColor = "#0B1220"
+
+[client]
+# No "Deploy" button and developer menu in the toolbar: the page is a chat for students, not a dev tool.
+toolbarMode = "minimal"
