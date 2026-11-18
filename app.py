@@ -153,6 +153,12 @@ EXAMPLES = {
 COURSE_CARD_LINK = re.compile(r"https://put\.poznan\.pl/cards/[^\n<>]*?\.pdf")
 # The answer's closing source line, which the agent writes as "Źródło: … (dane z 2026-11-15)" or in English.
 SOURCE_LINE = re.compile(r"^\W*(źródł[oa]|sources?)\W*:", re.IGNORECASE | re.MULTILINE)
+# The same citation when the agent slipped: any one-word label, in any language, at the start of a line or right after
+# a sentence, e.g. "… zaliczenie. Источник: https://…". It must run to the end of the answer, so that an ordinary link
+# in the text never takes the sentences after it away.
+CLOSING_CITATION = re.compile(
+    r"(?:^|(?<=[.!?…]\s))\W*[^\W\d_]+\W*:\W*(?:PDF:|https?://)[^\n]*\s*\Z", re.IGNORECASE | re.MULTILINE
+)
 OTHER_LINK = re.compile(r"https?://[^\s()<>\[\]]+")
 THRESHOLDS_FILE = re.compile(r"PDF:\s*([^()\n]+?\.pdf)", re.IGNORECASE)
 DATA_DATE = re.compile(r"(?:dane z|data of|data from)\s+(\d{4}-\d{2}-\d{2})", re.IGNORECASE)
@@ -238,7 +244,8 @@ def split_sources(answer: str, text: dict[str, str]) -> tuple[str, list[dict]]:
     """Take the closing source line off an answer and turn what it cites into source cards.
 
     The agent ends an answer with a line like "Źródło: <link or PDF> (dane z 2026-11-15)". It is shown as cards under
-    the answer instead; when nothing in it can be recognised, the answer is left whole.
+    the answer instead; a closing citation under a label in another language counts too. When nothing in it can be
+    recognised, the answer is left whole.
 
     Args:
         answer: The agent's final message.
@@ -248,10 +255,11 @@ def split_sources(answer: str, text: dict[str, str]) -> tuple[str, list[dict]]:
         tuple[str, list[dict]]: The answer without the source line, and one ``{"title", "detail", "url"}`` per cited
             source (``url`` None for the thresholds PDF, which is a local file).
     """
-    matches = list(SOURCE_LINE.finditer(answer))
-    if not matches:
+    labelled = list(SOURCE_LINE.finditer(answer))
+    citation = labelled[-1] if labelled else CLOSING_CITATION.search(answer)
+    if citation is None:
         return answer, []
-    body, block = answer[: matches[-1].start()].rstrip(), answer[matches[-1].start() :]
+    body, block = answer[: citation.start()].rstrip(), answer[citation.start() :]
     date = DATA_DATE.search(block)
     when = text["data_of"].format(date=date.group(1)) if date else ""
 

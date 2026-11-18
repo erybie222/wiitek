@@ -973,3 +973,55 @@ items:
     expected_data: null
     expected_faithfulness: 2
     expected_correctness: 2
+
+  # --- language of the answer -------------------------------------------------
+  - id: jezyk-obca-etykieta-zrodla
+    what_it_tests: "Fakty poprawne, ale etykieta źródła w polskiej odpowiedzi jest po rosyjsku — błąd języka kosztuje punkt correctness, faithfulness go nie dotyczy."
+    question: "Jaki był próg na Informatykę w 2025 roku?"
+    tool_calls: *threshold_informatyka_2025
+    answer: "Próg na Informatykę w 2025 roku wyniósł 759 pkt, limit przyjęć to 210 miejsc.\n\nИсточник: PDF: data/progi punktowe 2025-2021.pdf (dane z 2026-10-30)"
+    expected_answer: "759 pkt, limit przyjęć: 210 miejsc."
+    expected_data: { year: 2025, min_points: 759.0, capacity: 210 }
+    expected_faithfulness: 2
+    expected_correctness: 1
+
+  - id: jezyk-angielski-wtret-w-dopytaniu
+    what_it_tests: "Poprawne dopytanie przy dwóch osobach, ale z angielskim wtrętem w polskim zdaniu — własne słowa bota w innym języku niż pytanie."
+    question: "Kiedy konsultacje ma dr Paweł Wojciechowski?"
+    tool_calls: *two_pawel_wojciechowski
+    answer: "W bazie są dwie takie osoby: dr hab. inż. Paweł Wojciechowski (Zakład Systemów Informatycznych) i dr inż. Paweł Wojciechowski (Zakład Teorii Algorytmów i Systemów Programowania). Which osobę masz na myśli?"
+    expected_behavior: "Bot NIE wybiera jednej osoby — są dwie o identycznym imieniu i nazwisku (Zakład Systemów Informatycznych oraz Zakład Teorii Algorytmów i Systemów Programowania). Musi dopytać, o którą chodzi."
+    expected_faithfulness: 2
+    expected_correctness: 1
+
+  - id: jezyk-polska-etykieta-w-angielskiej-odpowiedzi
+    what_it_tests: "Angielska odpowiedź z polską linią źródła („Źródło: … dane z …”) — etykieta to własne słowa bota, nie wartość z bazy."
+    question: "Does Analiza matematyczna on Informatyka end with an exam, and how many ECTS is it?"
+    tool_calls: *course_anam
+    answer: "Yes — it ends with an exam (`Egzamin`) and is worth 6 ECTS.\n\nŹródło: https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia pierwszego stopnia/1/Analiza matematyczna (ANAM).pdf (dane z 2026-10-30)"
+    expected_answer: "Tak, egzamin. 6 ECTS."
+    expected_data:
+      { semester: 1, ects: 6, is_obligatory: true, hours_lecture: 30, hours_classes: 30, assessment_type: "Egzamin" }
+    expected_faithfulness: 2
+    expected_correctness: 1
+
+  - id: jezyk-kontrola-angielska-nazwa-kierunku
+    what_it_tests: "Kontrola: polska odpowiedź cytuje zapisaną w bazie angielską nazwę kierunku — to wartość z bazy, nie błąd języka."
+    question: "W jakim języku prowadzona jest Sztuczna inteligencja?"
+    tool_calls: *major_ai
+    answer: "Sztuczna inteligencja (Artificial Intelligence) jest prowadzona po angielsku."
+    expected_answer: "Po angielsku — kierunek ma angielską nazwę Artificial Intelligence."
+    expected_data: { english_name: "Artificial Intelligence" }
+    expected_faithfulness: 2
+    expected_correctness: 2
+
+  - id: jezyk-kontrola-polskie-wartosci-po-angielsku
+    what_it_tests: "Kontrola: angielska odpowiedź z polskimi wartościami z bazy, polskim adresem pliku i angielską linią źródła — żadnego błędu języka."
+    question: "Does Analiza matematyczna on Informatyka end with an exam, and how many ECTS is it?"
+    tool_calls: *course_anam
+    answer: "Yes — it ends with an exam (`Egzamin`) and is worth 6 ECTS.\n\nSource: https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia pierwszego stopnia/1/Analiza matematyczna (ANAM).pdf (data of 2026-10-30)"
+    expected_answer: "Tak, egzamin. 6 ECTS."
+    expected_data:
+      { semester: 1, ects: 6, is_obligatory: true, hours_lecture: 30, hours_classes: 30, assessment_type: "Egzamin" }
+    expected_faithfulness: 2
+    expected_correctness: 2

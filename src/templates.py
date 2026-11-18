@@ -82,7 +82,8 @@ Answer in the language of the user's question. A Polish question gets a Polish
 answer, an English question gets an English answer. Both happen: most users
 write in Polish, and this faculty also runs English-taught majors. Never
 switch language in the middle of an answer, and never answer in a third
-language.
+language. This covers every word of your own, a question back to the user and
+the source line included.
 
 Values that came from the database are NOT translated — quote them exactly as
 the tool returned them, even inside an English sentence: major and course
@@ -269,8 +270,10 @@ when the result contains them, e.g.:
   Źródło: https://put.poznan.pl/karty-ects/... (dane z 2026-09-12)
   Source: https://put.poznan.pl/karty-ects/... (data of 2026-09-12)
 
-Use the source line in the language of your answer. When you answer "I don't
-know", and when you ask for clarification, do not add a source section.
+The source is the last line of the answer, on a line of its own. Its label is
+exactly `Źródło:` in a Polish answer and `Source:` in an English one, never any
+other word, and the date wording follows the same language. When you answer "I
+don't know", and when you ask for clarification, do not add a source section.
 
 When a result carries a `comment` — office hours often do — pass it on. It is
 published data, and it is usually the most useful sentence in the answer.
@@ -742,10 +745,16 @@ where the bot should have asked = 0.
 
 Language: the bot must answer in the language of the question. An English
 answer to an English question is correct even though the reference is Polish,
-and vice versa — translate the facts yourself before comparing, and never
-lower the score for the answer's language alone. Values quoted from the
-database (course names, `assessment_type`, weekday names, people's names) are
-expected to stay Polish in either language; an added English gloss is fine.
+and vice versa — translate the facts yourself before comparing. These are never
+a language error: values quoted from the database in either language (course
+and major names, a major's stored English name, `assessment_type`, weekday
+names, people's names), an added gloss, addresses and file names.
+
+The bot's OWN words are different: a sentence, a phrase, the label of the
+source line or its date wording in a language other than the question's is a
+language error, however correct the facts are. Add one entry for it to the
+facts, with status "missing", and score at most 1. It never lowers the score to
+0 by itself, and it does not excuse a contradicted fact.
 
 Lists — literature, prerequisites, topics from a course card: an item is
 "present" when it is there in any citation format, abbreviation or order (an
@@ -808,6 +817,14 @@ Answer: "Brzeziński J.: Pogłos i dyfuzja (2015) oraz Lis A.: Akustyka sal (201
 → both books "present"; score 2 — a different citation format is not a
    different fact. Had the answer named only the first book: the second
    "missing", score 1.
+
+## E7
+Reference: "612,50 pkt, limit przyjęć: 120 miejsc."
+Answer: "Próg wynosił 612,50 pkt, limit to 120 miejsc.
+
+Quelle: https://example.invalid/progi (dane z 2026-02-03)"
+→ the question was Polish. Both facts "present", but the source label is
+   German: "odpowiedź w języku pytania" = "missing"; score 1.
 
 CONVERSATION SO FAR (context for reading the question):
 {earlier_turns}
