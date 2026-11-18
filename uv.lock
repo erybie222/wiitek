@@ -1234,6 +1234,7 @@ dependencies = [
     { name = "pdfplumber" },
     { name = "psycopg" },
     { name = "psycopg-pool" },
+    { name = "py3langid" },
     { name = "pyyaml" },
     { name = "requests" },
     { name = "streamlit" },
@@ -1249,9 +1250,22 @@ requires-dist = [
     { name = "pdfplumber", specifier = ">=0.11.10" },
     { name = "psycopg", specifier = ">=3.3.4" },
     { name = "psycopg-pool", specifier = ">=3.3.1" },
+    { name = "py3langid", specifier = ">=0.4.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "requests", specifier = ">=2.34.2" },
     { name = "streamlit", specifier = ">=1.67.0" },
+]
+
+[[package]]
+name = "py3langid"
+version = "0.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/16/fc/51c88e5ef8346878ae6c09e1f7c86c6e6308c57794723bf423a72ddba4dd/py3langid-0.4.0.tar.gz", hash = "sha256:5924159039b5cc282c2edc10a7ea9363b2099834a0e99ed8d5bea3cc435d7871", size = 4604185, upload-time = "2026-09-02T09:10:53.983Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/69/2d/0eeff2727c970b1d553be70d15ba2d84e3830696c09a79d954c5ae3d5212/py3langid-0.4.0-py3-none-any.whl", hash = "sha256:c25bd038147951ba3a89efe9ec12cc7d2116cb6f311ff8af84ade398a8bc0616", size = 4600605, upload-time = "2026-09-02T09:10:49.54Z" },
 ]
 
 [[package]]

@@ -693,7 +693,8 @@ poza_zakresem:
 #
 # Two things are under test at once: the usual lookup, and the rule that the
 # answer mirrors the question's language while values quoted from the database
-# stay as stored.
+# stay as stored. A question in any third language is answered in English too,
+# so its case lives here.
 # ---------------------------------------------------------------------------
 pytania_po_angielsku:
   - id: en-kierunki-anglojezyczne
@@ -781,6 +782,18 @@ pytania_po_angielsku:
     edge_case: "pytanie poza zakresem zadane po angielsku — odmowa BEZ odpytywania bazy, w jezyku pytania"
     notes: "Mierzy dwie rzeczy naraz: called_no_tools oraz to, ze odmowa trafia w jezyk pytania. Tresc rozna od przykladu P5 w SYSTEM_PROMPT (tam: stypendium socjalne)."
     expected_calls: []
+
+  - id: en-trzeci-jezyk-prog-niemiecki
+    question: "Wie hoch war die Punktgrenze für Informatik im Jahr 2025?"
+    entities: { kierunek: "Informatyka", rok: 2025 }
+    expected_data: { min_points: 759.00, capacity: 210 }
+    expected_answer: "759 points, capacity: 210 places. The answer is in English although the question is in German; the major's name may stay Polish, as stored."
+    edge_case: "pytanie w trzecim jezyku z przetlumaczona nazwa kierunku — odpowiedz po angielsku, nazwa kierunku znaleziona w bazie"
+    notes: "Te same dane co prog-informatyka-2025, inna mierzona rzecz: wykrycie jezyka w kodzie i znalezienie polskiej nazwy kierunku. „Informatik” nie jest nazwa z bazy, wiec pierwsze wyszukanie moze wrocic puste."
+    source: *progi
+    expected_calls:
+      - tool: get_admission_threshold
+        args: { major_name: "Informatyka", year: 2025 }
 
 # ---------------------------------------------------------------------------
 # Category 8 — powitanie_i_zakres (questions about the bot itself)

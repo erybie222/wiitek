@@ -1015,6 +1015,38 @@ items:
     expected_faithfulness: 2
     expected_correctness: 2
 
+  - id: jezyk-trzeci-odpowiedz-po-angielsku
+    what_it_tests: "Kontrola: pytanie po niemiecku, odpowiedź po angielsku — dla języka innego niż polski i angielski to wymagany język odpowiedzi."
+    question: "Wie viele ECTS hat Analiza matematyczna auf Informatyka, und endet sie mit einer Prüfung?"
+    tool_calls: *course_anam
+    answer: "Analiza matematyczna is worth 6 ECTS and ends with an exam (`Egzamin`).\n\nSource: https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia pierwszego stopnia/1/Analiza matematyczna (ANAM).pdf (data of 2026-10-30)"
+    expected_answer: "Tak, egzamin. 6 ECTS."
+    expected_data:
+      { semester: 1, ects: 6, is_obligatory: true, hours_lecture: 30, hours_classes: 30, assessment_type: "Egzamin" }
+    expected_faithfulness: 2
+    expected_correctness: 2
+
+  - id: jezyk-trzeci-odpowiedz-w-jezyku-pytania
+    what_it_tests: "Pytanie po niemiecku i cała odpowiedź po niemiecku — fakty poprawne, ale wymagany był angielski."
+    question: "Wie viele ECTS hat Analiza matematyczna auf Informatyka, und endet sie mit einer Prüfung?"
+    tool_calls: *course_anam
+    answer: "Analiza matematyczna hat 6 ECTS und endet mit einer Prüfung (`Egzamin`).\n\nQuelle: https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia pierwszego stopnia/1/Analiza matematyczna (ANAM).pdf (Daten vom 2026-10-30)"
+    expected_answer: "Tak, egzamin. 6 ECTS."
+    expected_data:
+      { semester: 1, ects: 6, is_obligatory: true, hours_lecture: 30, hours_classes: 30, assessment_type: "Egzamin" }
+    expected_faithfulness: 2
+    expected_correctness: 1
+
+  - id: jezyk-trzeci-odpowiedz-po-polsku
+    what_it_tests: "Pytanie po hiszpańsku, odpowiedź po polsku — fakty poprawne, ale wymagany był angielski."
+    question: "¿Cuál fue la puntuación mínima para Informatyka en 2025?"
+    tool_calls: *threshold_informatyka_2025
+    answer: "Próg na Informatykę w 2025 roku wyniósł 759 pkt, limit przyjęć to 210 miejsc.\n\nŹródło: PDF: data/progi punktowe 2025-2021.pdf (dane z 2026-10-30)"
+    expected_answer: "759 pkt, limit przyjęć: 210 miejsc."
+    expected_data: { year: 2025, min_points: 759.0, capacity: 210 }
+    expected_faithfulness: 2
+    expected_correctness: 1
+
   - id: jezyk-kontrola-polskie-wartosci-po-angielsku
     what_it_tests: "Kontrola: angielska odpowiedź z polskimi wartościami z bazy, polskim adresem pliku i angielską linią źródła — żadnego błędu języka."
     question: "Does Analiza matematyczna on Informatyka end with an exam, and how many ECTS is it?"

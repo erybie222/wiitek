@@ -3,6 +3,8 @@
 - ``SYSTEM_PROMPT`` — the agent's rules: never invent data, cite the source,
   ask when a name is ambiguous, refuse questions outside WIiT, and how to
   phrase answers.
+- ``ANSWER_IN_ENGLISH_NOTE`` — added to a question written in neither Polish
+  nor English, which code detects (``language.py``).
 - ``FAITHFULNESS_PROMPT`` — tells a judge to check that every claim in an
   answer is backed by the data the agent's tools returned.
 - ``CORRECTNESS_PROMPT`` — tells a judge to check the answer against the
@@ -502,6 +504,14 @@ get_course(major_name="Fotonika stosowana", course_name="Optyka kwantowa") → [
   courses are not.
 """
 
+ANSWER_IN_ENGLISH_NOTE = """\
+(System note, not written by the user: this message is in neither Polish nor
+English. Write your whole answer in English, including any question back and
+the source line, and keep values from the database exactly as stored. A major
+or course named here may be a translation: find its stored Polish name with
+your tools, as for any name that comes back empty, before saying there is no
+data.)"""
+
 FAITHFULNESS_PROMPT = """\
 You check whether a chatbot's answer stays within the data it received from the
 database. You do NOT judge whether the answer is factually right — another
@@ -743,16 +753,19 @@ know" or a request for clarification, you judge exactly that. A refusal = 2.
 Giving a concrete answer where a refusal was required = 0. Picking one variant
 where the bot should have asked = 0.
 
-Language: the bot must answer in the language of the question. An English
-answer to an English question is correct even though the reference is Polish,
-and vice versa — translate the facts yourself before comparing. These are never
-a language error: values quoted from the database in either language (course
-and major names, a major's stored English name, `assessment_type`, weekday
-names, people's names), an added gloss, addresses and file names.
+Language: the required language of the answer is Polish for a Polish question
+and English for a question in English or in any other language. An English
+answer is correct even though the reference is Polish, and vice versa —
+translate the facts yourself before comparing. These are never a language
+error: values quoted from the database in either language (course and major
+names, a major's stored English name, `assessment_type`, weekday names, people's
+names), an added gloss, addresses and file names. The source line's own wording
+is "Źródło: … (dane z …)" in Polish and "Source: … (data of …)" in English.
 
 The bot's OWN words are different: a sentence, a phrase, the label of the
-source line or its date wording in a language other than the question's is a
-language error, however correct the facts are. Add one entry for it to the
+source line or its date wording in anything but the required language is a
+language error, however correct the facts are — and so is a whole answer in the
+language of a question that required English. Add one entry for it to the
 facts, with status "missing", and score at most 1. It never lowers the score to
 0 by itself, and it does not excuse a contradicted fact.
 

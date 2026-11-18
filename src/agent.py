@@ -19,7 +19,8 @@ from langgraph.graph.state import CompiledStateGraph
 
 from config import AgentSettings, JudgeSettings
 from database.repository import TOOLS
-from templates import SYSTEM_PROMPT
+from language import is_in_third_language
+from templates import ANSWER_IN_ENGLISH_NOTE, SYSTEM_PROMPT
 
 
 def build_agent_model(settings: AgentSettings) -> ChatOpenAI:
@@ -93,7 +94,8 @@ def ask(agent: CompiledStateGraph, question: str, thread_id: str) -> list[BaseMe
 
     The agent sees everything said earlier in the same conversation, including tool results, so a follow-up like "a w
     2024?" is understood. Only this turn's messages are returned, not the whole conversation: the evaluation and the
-    chat read the tool calls from them, and earlier turns' calls must not be counted again.
+    chat read the tool calls from them, and earlier turns' calls must not be counted again. A question in neither Polish
+    nor English is sent with a note telling the agent to answer in English.
 
     Args:
         agent: The agent from ``build_agent``.
@@ -105,8 +107,9 @@ def ask(agent: CompiledStateGraph, question: str, thread_id: str) -> list[BaseMe
             Tool calls the agent made are in ``AIMessage.tool_calls``, and the rows each tool returned are
             in ``ToolMessage.artifact``.
     """
+    content = f"{question}\n\n{ANSWER_IN_ENGLISH_NOTE}" if is_in_third_language(question) else question
     conversation = agent.invoke(
-        {"messages": [HumanMessage(content=question)]},
+        {"messages": [HumanMessage(content=content)]},
         {"configurable": {"thread_id": thread_id}},
     )["messages"]
     # invoke returns the whole conversation; every turn starts with the user's
