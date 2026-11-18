@@ -170,3 +170,17 @@ class JudgeSettings(OpenAISettings):
     model: str = field(default_factory=lambda: os.getenv("JUDGE_MODEL", "gpt-6-luna"))
     temperature: float | None = field(default_factory=lambda: _optional_float("JUDGE_TEMPERATURE"))
     reasoning_effort: str | None = field(default_factory=lambda: _reasoning_effort("JUDGE_REASONING_EFFORT"))
+
+
+@dataclass
+class StrictJudgeSettings(JudgeSettings):
+    """Settings of the judge for calibration and whole-benchmark runs (``STRICT_JUDGE_MODEL`` in ``.env``).
+
+    These runs are rare and their results are the ones relied on, so they can afford a stronger model than the everyday
+    runs of a few cases. Blank falls back to ``JUDGE_MODEL``; temperature and reasoning effort stay the ``JUDGE_*``
+    ones.
+    """
+
+    model: str = field(
+        default_factory=lambda: _optional("STRICT_JUDGE_MODEL") or os.getenv("JUDGE_MODEL", "gpt-6-luna")
+    )

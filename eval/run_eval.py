@@ -28,6 +28,9 @@ The console shows a summary (``report.py``); the full report with every
 answer and tool call is saved to ``eval/results/``, e.g.
 ``2026-10-31_09-42-00_category-dopytania.json`` (local time, then what was run).
 
+The whole benchmark is judged by ``STRICT_JUDGE_MODEL``; a run narrowed with
+``--category``, ``--only`` or ``--limit`` by the cheaper ``JUDGE_MODEL``.
+
 Usage:
     uv run python -m eval.run_eval                  # whole benchmark
     uv run python -m eval.run_eval --category progi_punktowe
@@ -47,7 +50,7 @@ from ._src_path import ROOT
 
 # isort: split
 from agent import ask, build_agent, build_judge_model
-from config import AgentSettings, JudgeSettings
+from config import AgentSettings, JudgeSettings, StrictJudgeSettings
 from database.connection import close_pool
 
 # Must come before the app imports below: it puts src/ on the import path.
@@ -62,7 +65,7 @@ BENCHMARK_PATH = ROOT / "eval" / "benchmark.yaml"
 RESULTS_DIR = ROOT / "eval" / "results"
 
 
-def run(cases: list[dict], use_judge: bool, verbose: bool) -> list[CaseRecord]:
+def run(cases: list[dict], judge_settings: JudgeSettings | None, verbose: bool) -> list[CaseRecord]:
     """Ask the agent every case's question, score the result, and print one line per case.
 
     The line shows the layer-1 result and, with judges, both judge scores; below it come details worth reading
@@ -70,7 +73,7 @@ def run(cases: list[dict], use_judge: bool, verbose: bool) -> list[CaseRecord]:
 
     Args:
         cases: Benchmark cases to run.
-        use_judge: Also run the layer-2 judges; False scores layer 1 only.
+        judge_settings: The model for the layer-2 judges; None scores layer 1 only.
         verbose: Also print each case's tools and full answer.
 
     Returns:
@@ -79,7 +82,7 @@ def run(cases: list[dict], use_judge: bool, verbose: bool) -> list[CaseRecord]:
         scores. What each field means is described on the ``CaseRecord`` model.
     """
     agent = build_agent(AgentSettings())
-    judge_model = build_judge_model(JudgeSettings()) if use_judge else None
+    judge_model = build_judge_model(judge_settings) if judge_settings else None
     faith_judge = judge_model.with_structured_output(Faithfulness) if judge_model else None
     correct_judge = judge_model.with_structured_output(Correctness) if judge_model else None
 
@@ -198,15 +201,27 @@ def main() -> None:
         print("No cases selected - check --category / --only.")
         return
 
+    # The whole benchmark is the run results are quoted from, so it gets the strict judge.
+    is_whole_benchmark = not (args.category or args.only or args.limit is not None)
+    judge_settings = StrictJudgeSettings() if is_whole_benchmark else JudgeSettings()
+    if not args.no_judge:
+        print(f"Judge model: {judge_settings.model}\n")
+
     try:
-        records = run(cases, use_judge=not args.no_judge, verbose=args.verbose)
+        records = run(cases, judge_settings=None if args.no_judge else judge_settings, verbose=args.verbose)
     finally:
         close_pool()
 
     totals = aggregate(records)
     summarize(records, totals)
 
-    run_options = {"category": args.category, "only": args.only, "limit": args.limit, "judges": not args.no_judge}
+    run_options = {
+        "category": args.category,
+        "only": args.only,
+        "limit": args.limit,
+        "judges": not args.no_judge,
+        "judge_model": None if args.no_judge else judge_settings.model,
+    }
     report_path = write_report(records, totals, RESULTS_DIR, run_options)
     print(f"\nReport: {report_path.relative_to(ROOT)}")
 

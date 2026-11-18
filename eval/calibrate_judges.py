@@ -10,7 +10,8 @@ not be punished. Two failures matter, and they are counted apart:
 - **false zero** — a correct answer scored 0: the judge punishes something
   harmless, so the zero rate is higher than the truth.
 
-No database is needed: the tool output is stored in the YAML.
+No database is needed: the tool output is stored in the YAML. The judges run on
+``STRICT_JUDGE_MODEL``, the model trusted for the results that get quoted.
 
 Usage:
     uv run python -m eval.calibrate_judges                 # every item once
@@ -30,7 +31,7 @@ from ._src_path import ROOT
 
 # isort: split
 from agent import build_judge_model
-from config import JudgeSettings
+from config import StrictJudgeSettings
 
 # Must come before the app imports below: it puts src/ on the import path.
 from .answer_judges import judge_correctness, judge_faithfulness
@@ -137,7 +138,9 @@ def main() -> None:
         print("No items selected - check --only.")
         return
 
-    judge_model = build_judge_model(JudgeSettings())
+    judge_settings = StrictJudgeSettings()
+    print(f"Judge model: {judge_settings.model}\n")
+    judge_model = build_judge_model(judge_settings)
     faith_judge = judge_model.with_structured_output(Faithfulness)
     correct_judge = judge_model.with_structured_output(Correctness)
 
@@ -194,7 +197,11 @@ def main() -> None:
         + (f"_repeat-{args.repeat}" if args.repeat > 1 else "")
     )
     report_path = save_report_json(
-        {"run_options": {"only": args.only, "repeat": args.repeat}, "totals": totals, "results": results},
+        {
+            "run_options": {"only": args.only, "repeat": args.repeat, "judge_model": judge_settings.model},
+            "totals": totals,
+            "results": results,
+        },
         RESULTS_DIR,
         label,
     )
