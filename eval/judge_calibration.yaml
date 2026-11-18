@@ -259,6 +259,27 @@ tool_data:
             last_updated: "2026-10-30T18:25:24.992711+00:00",
           }
 
+  course_no_hours_in_catalog: &course_no_hours_in_catalog
+    - name: get_course
+      args: { major_name: "Informatyka", course_name: "Nauka pływania" }
+      result:
+        - {
+            course_code: "C_CS>NP30",
+            name: "Nauka pływania",
+            semester: 2,
+            is_obligatory: false,
+            language: "polski",
+            ects: 0,
+            hours_lecture: null,
+            hours_classes: null,
+            hours_lab: null,
+            hours_project: null,
+            hours_other: null,
+            assessment_type: "Zaliczenie z ocena",
+            source_url: "https://put.poznan.pl/cards/2026_2027/Informatyka/stacjonarne/studia pierwszego stopnia/2/przedmioty obieralne/Nauka pływania (NP30).pdf",
+            last_updated: "2026-11-18T11:53:56.773251+00:00",
+          }
+
   major_ai: &major_ai
     - name: get_major
       args: { major_name: "Sztuczna inteligencja" }
@@ -973,6 +994,21 @@ items:
     expected_data: null
     expected_faithfulness: 2
     expected_correctness: 2
+
+  # --- course hours ------------------------------------------------------------
+  - id: godziny-brak-w-katalogu-podane-jako-zero
+    what_it_tests: "Wszystkie pola godzin są null, a odpowiedź mówi o 0 godzin — brak danych przedstawiony jako liczba."
+    question: "Ile godzin ma Nauka pływania na Informatyce?"
+    tool_calls: *course_no_hours_in_catalog
+    answer: "Nauka pływania na Informatyce ma 0 godzin zajęć."
+    expected_faithfulness: 0
+
+  - id: godziny-brak-w-katalogu-uczciwie
+    what_it_tests: "Kontrola: wszystkie pola godzin są null, a odpowiedź mówi, że katalog ich nie podaje."
+    question: "Ile godzin ma Nauka pływania na Informatyce?"
+    tool_calls: *course_no_hours_in_catalog
+    answer: "Niestety katalog nie podaje liczby godzin dla Nauki pływania na Informatyce."
+    expected_faithfulness: 2
 
   # --- language of the answer -------------------------------------------------
   - id: jezyk-obca-etykieta-zrodla

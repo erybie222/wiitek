@@ -374,7 +374,7 @@ plany_studiow:
           semester: 2,
           ects: 0,
           is_obligatory: false,
-          hours_classes: 0,
+          hours_classes: null,
           assessment_type: "Zaliczenie z ocena",
           language: "polski",
         }

@@ -6,7 +6,8 @@ semester. The page structure the scraper relies on:
 - ``<h2>`` — a semester heading, e.g. "Semestr 1";
 - ``<h3>`` — a course group under it, e.g. "Przedmioty obligatoryjne";
 - the ``<table>`` right after each ``<h3>`` — one course per row, with the
-  columns name+code, ECTS, hours (W/C/L/P) and links to the course card.
+  columns name+code, ECTS, hours (lecture, classes, lab, project, other) and
+  links to the course card.
 
 If the university changes this layout, the scraper silently finds fewer
 courses, so check the printed course list after a run.
@@ -17,10 +18,13 @@ from __future__ import annotations
 import re
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from psycopg import Cursor as DBCursor
 
 from database.queries.courses import delete_courses_not_seen_in_run, upsert_course
+
+# Where each form of classes sits in a catalog row; "other" holds e.g. a placement's hours.
+HOURS_COLUMNS = {"hours_lecture": 2, "hours_classes": 3, "hours_lab": 4, "hours_project": 5, "hours_other": 6}
 
 
 def parse_hours(hours_str: str) -> tuple[int, bool]:
@@ -45,6 +49,30 @@ def parse_hours(hours_str: str) -> tuple[int, bool]:
     hours_int = int(digits[0]) if digits else 0
 
     return hours_int, has_exam
+
+
+def parse_row_hours(cells: list[Tag]) -> tuple[dict[str, int | None], bool]:
+    """Read every form's hours, and the exam marker, from one catalog row.
+
+    An empty cell next to filled ones means the course has no classes of that form, so it counts as 0. A row with no
+    hours at all says nothing about the course (the summer PE rows are published like this), so its hours stay unknown
+    rather than becoming zeros.
+
+    Args:
+        cells: The row's ``<td>`` cells.
+
+    Returns:
+        tuple[dict[str, int | None], bool]: Hours per ``HOURS_COLUMNS`` key, all None when every hours cell is empty, and
+            whether the lecture cell carries the "(E)" exam marker.
+    """
+    cell_texts = {column: cells[index].get_text(strip=True) for column, index in HOURS_COLUMNS.items()}
+    if not any(cell_texts.values()):
+        return dict.fromkeys(cell_texts), False
+
+    parsed_cells = {column: parse_hours(text) for column, text in cell_texts.items()}
+    hours = {column: hours_in_cell for column, (hours_in_cell, _) in parsed_cells.items()}
+    # Only the lecture cell carries the exam marker.
+    return hours, parsed_cells["hours_lecture"][1]
 
 
 def ingest_ects_catalog(cursor: DBCursor, url: str, major_id: int) -> None:
@@ -141,11 +169,7 @@ def ingest_ects_catalog(cursor: DBCursor, url: str, major_id: int) -> None:
             ects = int(ects_text) if ects_text.isdigit() else 0
 
             # 3. Extract Hours and Exam info
-            # Columns W/C/L/P; only the lecture (W) cell carries the (E) exam marker
-            lecture_hours, has_exam = parse_hours(cells[2].get_text(strip=True))
-            classes_hours, _ = parse_hours(cells[3].get_text(strip=True))
-            lab_hours, _ = parse_hours(cells[4].get_text(strip=True))
-            project_hours, _ = parse_hours(cells[5].get_text(strip=True))
+            hours, has_exam = parse_row_hours(cells)
 
             assessment_type = "Egzamin" if has_exam else "Zaliczenie z ocena"
 
@@ -168,10 +192,7 @@ def ingest_ects_catalog(cursor: DBCursor, url: str, major_id: int) -> None:
                     "name": subject_name,
                     "is_obligatory": is_obligatory,
                     "ects": ects,
-                    "hours_lecture": lecture_hours,
-                    "hours_classes": classes_hours,
-                    "hours_lab": lab_hours,
-                    "hours_project": project_hours,
+                    **hours,
                     "assessment_type": assessment_type,
                     "source_url": pdf_link,
                 }

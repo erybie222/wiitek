@@ -41,10 +41,11 @@ def upsert_course(
     name: str,
     is_obligatory: bool,
     ects: int,
-    hours_lecture: int,
-    hours_classes: int,
-    hours_lab: int,
-    hours_project: int,
+    hours_lecture: int | None,
+    hours_classes: int | None,
+    hours_lab: int | None,
+    hours_project: int | None,
+    hours_other: int | None,
     assessment_type: str,
     source_url: str | None,
 ) -> None:
@@ -62,10 +63,11 @@ def upsert_course(
         name: Course name.
         is_obligatory: True for an obligatory course, False for an elective.
         ects: ECTS points.
-        hours_lecture: Lecture hours (W).
-        hours_classes: Classes hours (C).
-        hours_lab: Lab hours (L).
-        hours_project: Project hours (P).
+        hours_lecture: Lecture hours; all five hours values are None when the catalog gives no hours for the course.
+        hours_classes: Classes hours.
+        hours_lab: Lab hours.
+        hours_project: Project hours.
+        hours_other: Hours of any other form, e.g. a placement.
         assessment_type: "Egzamin" (exam) or "Zaliczenie z ocena" (graded credit).
         source_url: Link to the course card PDF, or None if the catalog has none.
     """
@@ -73,8 +75,8 @@ def upsert_course(
         """
         INSERT INTO courses
         (course_code, major_id, semester, name, is_obligatory, ects,
-         hours_lecture, hours_classes, hours_lab, hours_project, assessment_type, source_url)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+         hours_lecture, hours_classes, hours_lab, hours_project, hours_other, assessment_type, source_url)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (course_code, major_id, semester)
         DO UPDATE SET
             name = EXCLUDED.name,
@@ -84,6 +86,7 @@ def upsert_course(
             hours_classes = EXCLUDED.hours_classes,
             hours_lab = EXCLUDED.hours_lab,
             hours_project = EXCLUDED.hours_project,
+            hours_other = EXCLUDED.hours_other,
             assessment_type = EXCLUDED.assessment_type,
             source_url = EXCLUDED.source_url,
             last_updated = CURRENT_TIMESTAMP;
@@ -99,6 +102,7 @@ def upsert_course(
             hours_classes,
             hours_lab,
             hours_project,
+            hours_other,
             assessment_type,
             source_url,
         ),
@@ -157,8 +161,8 @@ def get_course(
             ``language`` (str | None) — teaching language from the course card, e.g. "polski" or "angielski"; None
                 when no course card was read, so the language is unknown.
             ``ects`` (int) — ECTS points.
-            ``hours_lecture`` / ``hours_classes`` / ``hours_lab`` /
-                ``hours_project`` (int) — hours per semester of each form.
+            ``hours_lecture`` / ``hours_classes`` / ``hours_lab`` / ``hours_project`` / ``hours_other`` (int | None) —
+                hours per semester of each form; all None when the catalog gives no hours for the course.
             ``assessment_type`` (str) — "Egzamin" or "Zaliczenie z ocena".
             ``source_url`` (str | None) — course card link.
             ``last_updated`` (str) — when the row was last written (ISO date-time).
@@ -172,7 +176,7 @@ def get_course(
     cursor.execute(
         """
         SELECT c.course_code, c.name, c.semester, c.is_obligatory, c.language,
-               c.ects, c.hours_lecture, c.hours_classes, c.hours_lab, c.hours_project,
+               c.ects, c.hours_lecture, c.hours_classes, c.hours_lab, c.hours_project, c.hours_other,
                c.assessment_type, c.source_url, c.last_updated
         FROM courses c
         JOIN majors m ON m.id = c.major_id
@@ -209,6 +213,7 @@ def get_course(
         "hours_classes",
         "hours_lab",
         "hours_project",
+        "hours_other",
         "assessment_type",
         "source_url",
         "last_updated",

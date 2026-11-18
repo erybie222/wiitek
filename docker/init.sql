@@ -47,10 +47,13 @@ CREATE TABLE IF NOT EXISTS courses (
     language VARCHAR(50),
     is_obligatory BOOLEAN NOT NULL DEFAULT TRUE,
     ects INT NOT NULL CHECK (ects >= 0),
-    hours_lecture INT NOT NULL DEFAULT 0,
-    hours_classes INT NOT NULL DEFAULT 0,
-    hours_lab INT NOT NULL DEFAULT 0,
-    hours_project INT NOT NULL DEFAULT 0,
+    -- Hours per form. All five are NULL when the catalog gives no hours for the course;
+    -- 0 next to a filled form means the course has no classes of that form.
+    hours_lecture INT,
+    hours_classes INT,
+    hours_lab INT,
+    hours_project INT,
+    hours_other INT,
     assessment_type VARCHAR(50),
     source_url TEXT,
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,

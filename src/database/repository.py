@@ -121,6 +121,10 @@ def get_course(
     A course's teaching language is its own "language" field, never the major's: an English-taught major also has
     courses taught in Polish. A null "language" means it is unknown — say you don't know, never guess Polish.
 
+    "hours_other" counts hours outside the four usual forms, such as a placement. When all five hours fields are null,
+    the catalog gives no hours for that course: say so, and never report it as 0 hours. A 0 next to a filled field means
+    the course has no classes of that form.
+
     Args:
         major_name: Polish name, or the English name of an English-taught major (case- and diacritic-insensitive).
         course_name: Optional substring filter on course name (case- and diacritic-insensitive).
